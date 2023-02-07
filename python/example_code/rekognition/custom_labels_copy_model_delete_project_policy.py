@@ -110,10 +110,11 @@ def main():
             print(f"Finished deleting project policy: {args.policy_name}")
         else:
             print(f"Not deleting project policy {args.policy_name}")
-    except ClientError:
-        logger.exception(
-            "Couldn't delete project policy in %s.", args.policy_name)
-        raise
+    except ClientError as err:
+        error_message = f"Couldn't delete project policy in {args.policy_name}: {err}"
+        logger.exception(error_message)
+        print(error_message)
+
 
 
 if __name__ == "__main__":
