@@ -95,7 +95,7 @@ def main():
         args = parser.parse_args()
 
         if confirm_project_policy_deletion(args.policy_name) is True:
-            print(f"Deleting prject_policy: {args.policy_name}")
+            print(f"Deleting project_policy: {args.policy_name}")
 
             session = boto3.Session(profile_name='custom-labels-access')
             rekognition_client = session.client("rekognition")
@@ -111,9 +111,7 @@ def main():
         else:
             print(f"Not deleting project policy {args.policy_name}")
     except ClientError as err:
-        error_message = f"Couldn't delete project policy in {args.policy_name}: {err}"
-        logger.exception(error_message)
-        print(error_message)
+        print(f"Couldn't delete project policy in {args.policy_name}: {err}")
 
 
 
