@@ -1,6 +1,10 @@
-#Copyright 2023 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-#PDX-License-Identifier: MIT-0 (For details, see https://github.com/awsdocs/amazon-rekognition-custom-labels-developer-guide/blob/master/LICENSE-SAMPLECODE.)
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
 
+"""
+Purpose
+Shows how to add entries to an Amazon Rekognition Custom Labels dataset.
+"""
 
 import argparse
 import logging
@@ -24,7 +28,7 @@ def update_dataset_entries(rek_client, dataset_arn, updates_file):
         status=""
         status_message=""
 
-        #Update dataset entries
+        # Update dataset entries.
         logger.info("Updating dataset %s", dataset_arn)
 
 
