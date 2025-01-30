@@ -68,8 +68,6 @@ def main():
     AGENT_ID = 'your-agent-id'
     AGENT_ALIAS_ID = 'your-agent-alias-id'
 
-    AGENT_ID = '5EXLGNFHF8'
-    AGENT_ALIAS_ID = 'JO2YGTUX1Y'
 
     try:
         client = boto3.client('bedrock-agent-runtime')
