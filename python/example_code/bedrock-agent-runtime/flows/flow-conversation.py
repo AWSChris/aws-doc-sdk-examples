@@ -20,6 +20,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+
 def invoke_flow(client, flow_id, flow_alias_id, input_data, execution_id):
     """
     Invoke an Amazon Bedrock flow and handle the response stream.
@@ -161,6 +162,8 @@ def main():
     # Replace these with your actual flow ID and flow alias ID.
     FLOW_ID = 'YOUR_FLOW_ID'
     FLOW_ALIAS_ID = 'YOUR_FLOW_ALIAS_ID'
+
+
 
     logger.info("Starting conversation with FLOW: %s ID: %s",
                 FLOW_ID, FLOW_ALIAS_ID)
