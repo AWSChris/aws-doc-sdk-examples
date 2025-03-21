@@ -48,7 +48,7 @@ def main():
      """
 
     # Replace with your flow ID
-    flow_id = "LNG6O7TKBM"
+    flow_id = "FLOW_ID"
 
     session = boto3.Session(profile_name='default')
     bedrock_agent_client = boto3.client('bedrock-agent')
