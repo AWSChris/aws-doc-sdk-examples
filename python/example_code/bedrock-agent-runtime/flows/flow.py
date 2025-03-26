@@ -57,7 +57,38 @@ def prepare_flow(flow_id):
         print(f"Unexpected error: {str(e)}")
         return None
 
+def delete_flow(client, flow_id):
+    """
+    Deletes a Bedrock flow.
 
+    Args:
+    client: bedrock agent boto3 client.
+        flow_id (str): The identifier of the flow that you want to delete.
+
+    Returns:
+        dict: Flow information if successful, None if an error occurs
+    """
+    try:
+
+        # Call DeleteFlow operation
+        response = client.delete_flow(
+            flowIdentifier=flow_id
+        )
+
+        print(f"Flow {flow_id} deleted successfully")
+        return response
+
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ResourceNotFoundException':
+            print(f"Flow with ID {flow_id} not found")
+        elif e.response['Error']['Code'] == 'AccessDeniedException':
+            print("You don't have permission to delete this flow")
+        else:
+            print(f"Error deleting flow: {str(e)}")
+        raise
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        raise
 
 
 def main():

@@ -6,13 +6,13 @@ This module provides functionality delete an Amazon Bedrock flow.
 
 import boto3
 from botocore.exceptions import ClientError
-import json
 
 def delete_flow(client, flow_id):
     """
     Deletes a Bedrock flow.
 
     Args:
+    client: bedrock agent boto3 client.
         flow_id (str): The identifier of the flow that you want to delete.
 
     Returns:
@@ -51,7 +51,7 @@ def main():
     flow_id = "FLOW_ID"
 
     session = boto3.Session(profile_name='default')
-    bedrock_agent_client = boto3.client('bedrock-agent')
+    bedrock_agent_client = session.client('bedrock-agent')
     # Get and display flow details
     delete_flow(bedrock_agent_client,flow_id)
 

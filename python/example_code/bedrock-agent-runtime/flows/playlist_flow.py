@@ -38,16 +38,22 @@ Dependencies:
 """
 
 
-
 from datetime import datetime
+import logging
 import boto3
 
 from botocore.exceptions import ClientError
 
 from roles import create_flow_role, delete_flow_role, update_role_policy
-from prepare_flow import prepare_flow
+from flow import prepare_flow, delete_flow
 from run_flow import run_playlist_flow
-from delete_flow import delete_flow
+from flow_version import create_flow_version, delete_flow_version
+from flow_alias import create_flow_alias, delete_flow_alias
+
+logging.basicConfig(
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 
 
 def create_input_node(name):
@@ -69,17 +75,18 @@ def create_input_node(name):
                 - type (str): Set to "Object"
     """
     return {
-      "type": "Input",
-      "name": name,
-      "outputs": [
-          {
-              "name": "document",
-              "type": "Object"
-          }
-      ]
-  }
+        "type": "Input",
+        "name": name,
+        "outputs": [
+            {
+                "name": "document",
+                "type": "Object"
+            }
+        ]
+    }
 
-def create_prompt_node (name, model_id):
+
+def create_prompt_node(name, model_id):
     """
     Creates a prompt node configuration for a Bedrock flow that generates music playlists.
 
@@ -109,49 +116,50 @@ def create_prompt_node (name, model_id):
                 - name (str): Set to "modelCompletion"
                 - type (str): Set to "String"
     """
-  
+
     return {
-      "type": "Prompt",
-      "name": name,
-      "configuration": {
-          "prompt": {
-              "sourceConfiguration": {
-                  "inline": {
-                      "modelId": model_id,
-                      "templateType": "TEXT",
-                      "inferenceConfiguration": {
-                          "text": {
-                              "temperature": 0.8
-                          }
-                      },
-                      "templateConfiguration": { 
-                          "text": {
-                              "text": "Make me a {{genre}} playlist consisting of the following number of songs: {{number}}."
-                          }
-                      }
-                  }
-              }
-          }
-      },
-      "inputs": [
-          {
-              "name": "genre",
-              "type": "String",
-              "expression": "$.data.genre"
-          },
-          {
-              "name": "number",
-              "type": "Number",
-              "expression": "$.data.number"
-          }
-      ],
-      "outputs": [
-          {
-              "name": "modelCompletion",
-              "type": "String"
-          }
-      ]
-  }
+        "type": "Prompt",
+        "name": name,
+        "configuration": {
+            "prompt": {
+                "sourceConfiguration": {
+                    "inline": {
+                        "modelId": model_id,
+                        "templateType": "TEXT",
+                        "inferenceConfiguration": {
+                            "text": {
+                                "temperature": 0.8
+                            }
+                        },
+                        "templateConfiguration": {
+                            "text": {
+                                "text": "Make me a {{genre}} playlist consisting of the following number of songs: {{number}}."
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "inputs": [
+            {
+                "name": "genre",
+                "type": "String",
+                "expression": "$.data.genre"
+            },
+            {
+                "name": "number",
+                "type": "Number",
+                "expression": "$.data.number"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "modelCompletion",
+                "type": "String"
+            }
+        ]
+    }
+
 
 def create_output_node(name):
     """
@@ -174,16 +182,17 @@ def create_output_node(name):
     """
 
     return {
-      "type": "Output",
-      "name": name,
-      "inputs": [
-          {
-              "name": "document",
-              "type": "String",
-              "expression": "$.data"
-          }
-      ]
-  }
+        "type": "Output",
+        "name": name,
+        "inputs": [
+            {
+                "name": "document",
+                "type": "String",
+                "expression": "$.data"
+            }
+        ]
+    }
+
 
 def create_playlist_flow(client, flow_name, role_arn, prompt_model_id):
     """
@@ -195,8 +204,7 @@ def create_playlist_flow(client, flow_name, role_arn, prompt_model_id):
     Returns:
         dict: The response from the create_flow operation.
     """
-    
-   
+
     input_node = create_input_node("FlowInput")
     prompt_node = create_prompt_node("MakePlaylist", prompt_model_id)
     output_node = create_output_node("FlowOutput")
@@ -204,7 +212,7 @@ def create_playlist_flow(client, flow_name, role_arn, prompt_model_id):
     # Create connections between the nodes
     connections = []
 
-    #   First, create connections between the output of the flow input node and each input of the prompt node
+    #  First, create connections between the output of the flow input node and each input of the prompt node
     for input in prompt_node["inputs"]:
         connections.append(
             {
@@ -237,37 +245,40 @@ def create_playlist_flow(client, flow_name, role_arn, prompt_model_id):
         }
     )
 
-
     flow_def = {
         "nodes": [input_node, prompt_node, output_node],
         "connections": connections
-        }
+    }
 
-        # Create the flow.
+    # Create the flow.
 
     try:
-            
+
+        logger.info("Creating flow: %s.", flow_name)
+
         response = client.create_flow(
-                name=flow_name,
-                description="Playlist creation flow",
-                executionRoleArn=role_arn,
-                definition=flow_def
-            )
-            
-            
-        print(f"Flow created successfully. Flow ID: {response['id']}")
+            name=flow_name,
+            description="Playlist creator flow",
+            executionRoleArn=role_arn,
+            definition=flow_def
+        )
+
+        logger.info("Successfully created flow: %s. ID: %s",
+                    flow_name,
+                    {response['id']})
+
         return response
-    
+
     except ClientError as e:
-        print(f"Error creating flow: {str(e)}")
+        logger.exception("Client error creating flow: %s", {str(e)})
         raise
 
     except Exception as e:
-        print(f"Error creating flow: {str(e)}")
+        logger.exception("Unexepcted error creating flow: %s", {str(e)})
         raise
 
 
-def get_model_arn (client, model_id):
+def get_model_arn(client, model_id):
     """
     Gets the Amazon Resource Name (ARN) for a model.
     Args:
@@ -276,8 +287,6 @@ def get_model_arn (client, model_id):
     Returns:
         str: The ARN of the model.
     """
-    
-    
 
     try:
         # Call GetFoundationModelDetails operation
@@ -287,37 +296,64 @@ def get_model_arn (client, model_id):
         model_arn = response['modelDetails']['modelArn']
 
         return model_arn
- 
+
     except ClientError as e:
-            print(f"Error creating flow: {str(e)}")
-            raise
+        logger.exception("Client error getting model ARN: %s", {str(e)})
+        raise
 
     except Exception as e:
-            print(f"Error creating flow: {str(e)}")
-            raise
+        logger.exception("Unexpected error getting model ARN: %s", {str(e)})
+        raise
 
+
+def prepare_and_run_flow(bedrock_agent_client, 
+                        bedrock_agent_runtime_client,
+                        iam_client,
+                        role_name,
+                        role_arn,
+                        flow_id):
+
+    response = prepare_flow(flow_id)
+
+    if response.get('status') == 'Prepared':
+
+        # Create the flow version and alias.
+        flow_version = create_flow_version(bedrock_agent_client,
+                                           flow_id,
+                                           f"flow version for flow {flow_id}.")
+
+        flow_alias = create_flow_alias(bedrock_agent_client,
+                                       flow_id,
+                                       flow_version,
+                                       "latest",
+                                       f"Alias for flow {flow_id}, version {flow_version}")
+
+        run_playlist_flow(bedrock_agent_runtime_client,
+                          flow_id, flow_alias)
+
+        delete_choice = input("Delete flow? y or n : ").lower()
+
+        if delete_choice == 'y':
+            delete_flow_alias(bedrock_agent_client, flow_id, flow_alias)
+            delete_flow_version(bedrock_agent_client,
+                                flow_id, flow_version)
+            delete_flow(bedrock_agent_client, flow_id)
+            delete_flow_role(iam_client, role_name)
+        else:
+            print("Flow not deleted.")
+            print(f"Flow ID: {flow_id}")
+            print(f"Role ARN: {role_arn}")
+
+    else:
+        print("Flow not prepared. Deleting.")
+        delete_flow(bedrock_agent_client, flow_id)
+        delete_flow_role(iam_client, role_name)
 
 
 
 def main():
     """
     Creates, runs, and optionally deletes a Bedrock flow for generating music playlists.
-
-    The function performs the following steps:
-    1. Initializes AWS clients (Bedrock, IAM)
-    2. Creates an IAM role with necessary permissions
-    3. Creates a Bedrock flow for playlist generation
-    4. Updates the role policy with required model access
-    5. Prepares and runs the flow
-    6. Optionally deletes the flow and associated resources
-
-    Flow configuration:
-        - Uses amazon.nova-pro-v1:0 foundation model
-        - Creates flow named "FlowPlaylist11"
-        - Creates IAM role with "BedrockFlowRole-" prefix
-
-    The function prompts the user to decide whether to delete the flow after execution.
-    If not deleted, it prints the Flow ID and Role ARN for future reference.
 
     Raises:
         ClientError: If AWS API calls fail
@@ -328,66 +364,49 @@ def main():
     """
 
     try:
-      
-        #Get various boto3 clients.
+
+        # Get various boto3 clients.
         session = boto3.Session(profile_name='default')
         bedrock_agent_runtime_client = session.client('bedrock-agent-runtime')
-        bedrock_agent_client = boto3.client('bedrock-agent')
+        bedrock_agent_client = session.client('bedrock-agent')
         bedrock_client = session.client('bedrock')
         iam_client = session.client('iam')
-        
-        
-        prompt_model_id="amazon.nova-pro-v1:0"
-        
+
+        prompt_model_id = "amazon.nova-pro-v1:0"
+
         # Base the flow name on the current date and time
         current_time = datetime.now()
         timestamp = current_time.strftime("%Y-%m-%d-%H-%M-%S")
         flow_name = f"FlowPlayList_{timestamp}"
-        
-        
+
         # Create a role for the flow.
         role_name = f"BedrockFlowRole-{flow_name}"
         role = create_flow_role(iam_client, role_name)
         role_arn = role['Arn']
 
         # Create the flow.
-        response = create_playlist_flow(bedrock_agent_client,flow_name, role_arn, prompt_model_id)
+        response = create_playlist_flow(
+            bedrock_agent_client, flow_name, role_arn, prompt_model_id)
         flow_id = response.get('id')
 
         if flow_id:
-            #Update accessible resources in the role.
+            # Update accessible resources in the role.
             model_arn = get_model_arn(bedrock_client, prompt_model_id)
-            update_role_policy (iam_client, role_name, [response.get('arn'), model_arn])
-            
-            #Prepare the flow.
-            print(f"Flow created - {flow_id}")
-            response=prepare_flow(flow_id)
-            
-            #Run the flow
-            if response.get('status') =='Prepared':
+            update_role_policy(iam_client, role_name, [
+                               response.get('arn'), model_arn])
 
-                run_playlist_flow(bedrock_agent_runtime_client,flow_id,'TSTALIASID')
+            # Prepare and run the flow.
+            prepare_and_run_flow(bedrock_agent_client,
+                                 bedrock_agent_runtime_client,
+                                 iam_client,
+                                 role_name,
+                                 role_arn,
+                                 flow_id)
 
-                delete_choice = input("Delete flow? y or n :")
-                if delete_choice == 'y':
-                    delete_flow(bedrock_agent_client, flow_id) 
-                    delete_flow_role(iam_client,role_name)
-                else:
-                    print("Flow not deleted.")
-                    print(f"Flow ID: {flow_id}")
-                    print(f"Role ARN: {role_arn}")
-                    
-        else:
-            print("Flow not created.")
-            if role:
-                delete_flow_role(iam_client, role_name)
-                print(f"Role {role_name} deleted.")
-        
-        print ("Done")        
+        print("Done")
 
     except Exception as e:
         print(f"Fatal error: {str(e)}")
-
 
 
 if __name__ == "__main__":
