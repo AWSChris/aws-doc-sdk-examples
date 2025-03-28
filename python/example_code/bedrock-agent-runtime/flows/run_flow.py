@@ -12,21 +12,9 @@ The module interacts with a pre-configured Bedrock flow that expects:
     - Input: JSON document containing genre and number of songs
     - Output: Generated playlist as formatted text
 
-Functions:
-    invoke_flow(client, flow_id: str, flow_alias_id: str, input_data: dict) -> dict:
-        Invokes a Bedrock flow and processes its streaming response.
-        Returns a dictionary containing flow status and input requirements.
-
-    run_playlist_flow(bedrock_agent_client, flow_id: str, flow_alias_id: str) -> None:
-        Handles user input collection and flow execution for playlist generation.
-        Prompts user for genre and number of songs.
-
-    main() -> None:
-        Entry point for the script. Sets up AWS client and initiates the flow execution.
 """
 
 import logging
-import boto3
 import botocore
 
 import botocore.exceptions
@@ -34,7 +22,7 @@ import botocore.exceptions
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
+# snippet-start:[python.example_code.bedrock-agent-runtime.flow_invoke_flow]  
 def invoke_flow(client, flow_id, flow_alias_id, input_data):
     """
     Invoke an Amazon Bedrock flow and handle the response stream.
@@ -85,7 +73,9 @@ def invoke_flow(client, flow_id, flow_alias_id, input_data):
         "flow_status": flow_status,
         "input_required": input_required,
     }
+# snippet-end:[python.example_code.bedrock-agent-runtime.flow_invoke_flow]  
 
+# snippet-start:[python.example_code.bedrock-agent-runtime.run_playlist_flow]  
 
 def run_playlist_flow(bedrock_agent_client, flow_id, flow_alias_id):
     """
@@ -105,7 +95,7 @@ def run_playlist_flow(bedrock_agent_client, flow_id, flow_alias_id):
     number_of_songs = int(input("Enter number of songs: "))
 
 
-    # Use prompt to create input data.
+    # Use prompt to create input data for the input node.
     flow_input_data = {
         "content": {
             "document": {
@@ -119,7 +109,6 @@ def run_playlist_flow(bedrock_agent_client, flow_id, flow_alias_id):
 
     try:
 
-
         result = invoke_flow(
                 bedrock_agent_client, flow_id, flow_alias_id, flow_input_data)
 
@@ -127,10 +116,9 @@ def run_playlist_flow(bedrock_agent_client, flow_id, flow_alias_id):
   
         if status == "SUCCESS":
                 # The flow completed successfully.
-                finished = True
                 logger.info("The flow %s successfully completed.", flow_id)
         else:
-            print (f"Status {status} not supported")
+            print (f"Status: {status}")
 
     except botocore.exceptions.ClientError as e:
         print(f"Client error: {str(e)}")
@@ -141,38 +129,6 @@ def run_playlist_flow(bedrock_agent_client, flow_id, flow_alias_id):
         logger.error("An error occurred: %s", {str(e)})
         logger.error("Error type: %s", {type(e)})
 
-
-def main():
-    """
-    Main entry point for the Bedrock flow playlist generator.
-
-    This function:
-    1. Sets up the Bedrock agent runtime client using the default AWS profile
-    2. Initializes the flow with predefined Flow ID and Flow Alias ID
-    3. Executes the playlist generation flow
-    """
-
-    # Replace these with your actual flow ID and flow alias ID.
-    #FLOW_ID = 'D25PS1P3PA'
-    FLOW_ALIAS_ID = 'TSTALIASID'
-
-    FLOW_ID='YOUR_FLOW_ID'
-
-    logger.info("Starting conversation with FLOW: %s ID: %s",
-                FLOW_ID, FLOW_ALIAS_ID)
-
-    # Get the Bedrock agent runtime client.
-    session = boto3.Session(profile_name='default')
-    bedrock_agent_client = session.client('bedrock-agent-runtime')
-
-    # Start the conversation.
-    run_playlist_flow(bedrock_agent_client, FLOW_ID, FLOW_ALIAS_ID)
-
-    logger.info("Conversation with FLOW: %s ID: %s finished",
-                FLOW_ID, FLOW_ALIAS_ID)
-
-
-if __name__ == "__main__":
-    main()
+# snippet-end:[python.example_code.bedrock-agent-runtime.run_playlist_flow]  
 
 

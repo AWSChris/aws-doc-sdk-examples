@@ -7,37 +7,10 @@ IAM Role Management for Amazon Bedrock Flows
 This module provides functionality to create, update, and delete IAM roles specifically
 configured for Amazon Bedrock flows. It handles the complete lifecycle of IAM roles
 including trust relationships, inline policies, and permissions management.
+"""
 
-Key Features:
-    - Creates IAM roles with Bedrock-specific trust relationships
-    - Manages inline policies for Bedrock operations
-    - Updates role policies with specific resource ARNs
-    - Provides role cleanup and deletion
-    - Implements comprehensive error handling
-
-Functions:
-    create_flow_role(client, role_name: str) -> dict:
-        Creates an IAM role for Amazon Bedrock with basic permissions.
-        Returns the created role information.
-
-    update_role_policy(client, role_name: str, resource_arns: list) -> None:
-        Updates the role's inline policy with specific resource ARNs for
-        fine-grained access control.
-
-    delete_flow_role(client, role_name: str) -> None:
-        Deletes an IAM role and its associated inline policies.
-
-    main() -> None:
-        Demonstrates role creation, policy updates, and cleanup operations.
-    """
-
-import boto3
 import json
-
 from botocore.exceptions import ClientError
-
-
-
 
 
 def create_flow_role(client, role_name):
@@ -144,7 +117,7 @@ def update_role_policy(client, role_name, resource_arns):
             PolicyName=f"{role_name}-policy",
             PolicyDocument=json.dumps(updated_policy)
         )
-        print(f"Upsdated policy for role: {role_name}")
+        print(f"Updated policy for role: {role_name}")
         
     except ClientError as e:
         print(f"Error updating role policy: {str(e)}")
@@ -175,32 +148,4 @@ def delete_flow_role(client, role_name):
     except ClientError as e:
         print(f"Error deleting role: {str(e)}")
         raise
-
-def main():
-    # Create role with placeholder permissions
-    role_name = "BedrockFlowRolePyp1"
-    role = create_flow_role(role_name)
-    
-    if role:
-        # Later, when you have the specific ARNs, update the policy
-        resource_arns = [
-            "arn:aws:bedrock:us-east-1:484315795920:flow/3DN0BG1TH7",
-            "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0",
-            "arn:aws:bedrock:us-east-1:484315795920:knowledge-base/GCJBAFTZ87"
-        ]
-        #update_role_policy(role_name, resource_arns)
-
-if __name__ == "__main__":
-
-
-
-    session = boto3.Session(profile_name='default')
-    iam_client = session.client('iam')
-
-    delete_flow_role(iam_client,"BedrockFlowRole-FlowPlaylist12")
-
-    #FlowPlaylist11
-
-
-    #main()
 

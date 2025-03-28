@@ -13,28 +13,12 @@ that generates music playlists. The flow consists of three nodes:
 The flow takes a music genre and desired number of songs as input and returns
 a generated playlist using the specified foundation model.
 
-Main components:
-- Node creation functions for input, prompt, and output nodes
-- Flow creation with proper IAM role and permissions
-- Flow execution and cleanup utilities
-
-Example usage:
-    python playlist_flow.py
-
 The script will:
 1. Create necessary IAM roles and permissions
 2. Create and configure the Bedrock flow
 3. Run the flow with user-provided genre and song count
 4. Optionally delete the flow and cleanup resources
 
-Required AWS permissions:
-- IAM role creation and management
-- Bedrock agent access
-- Bedrock foundation model access
-
-Dependencies:
-    boto3: AWS SDK for Python
-    botocore.exceptions: AWS error handling
 """
 
 
@@ -45,7 +29,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 from roles import create_flow_role, delete_flow_role, update_role_policy
-from flow import prepare_flow, delete_flow
+from flow import create_flow, prepare_flow, delete_flow
 from run_flow import run_playlist_flow
 from flow_version import create_flow_version, delete_flow_version
 from flow_alias import create_flow_alias, delete_flow_alias
@@ -55,7 +39,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
+# snippet-start:[python.example_code.bedrock-agent-runtime.create_input_node]
 def create_input_node(name):
     """
     Creates an input node configuration for a Bedrock flow.
@@ -67,12 +51,8 @@ def create_input_node(name):
         name (str): The name of the input node.
 
     Returns:
-        dict: The input node configuration containing:
-            - type (str): Set to "Input"
-            - name (str): The name provided for the node
-            - outputs (list): List containing a single output configuration:
-                - name (str): Set to "document"
-                - type (str): Set to "Object"
+        dict: The input node configuration.
+
     """
     return {
         "type": "Input",
@@ -85,7 +65,9 @@ def create_input_node(name):
         ]
     }
 
+# snippet-end:[python.example_code.bedrock-agent-runtime.create_input_node]
 
+# snippet-start:[python.example_code.bedrock-agent-runtime.create_prompt_node]
 def create_prompt_node(name, model_id):
     """
     Creates a prompt node configuration for a Bedrock flow that generates music playlists.
@@ -101,20 +83,8 @@ def create_prompt_node(name, model_id):
         model_id (str): The identifier of the foundation model to use for the prompt.
 
     Returns:
-        dict: The prompt node configuration containing:
-            - type (str): Set to "Prompt"
-            - name (str): The name provided for the node
-            - configuration (dict): The prompt configuration including:
-                - modelId (str): The specified foundation model ID
-                - templateType (str): Set to "TEXT"
-                - inferenceConfiguration (dict): Model parameters including temperature
-                - templateConfiguration (dict): The prompt template text
-            - inputs (list): List of input configurations:
-                - genre (str): Mapped from $.data.genre
-                - number (int): Mapped from $.data.number
-            - outputs (list): List containing a single output configuration:
-                - name (str): Set to "modelCompletion"
-                - type (str): Set to "String"
+        dict: The prompt node.
+
     """
 
     return {
@@ -160,6 +130,10 @@ def create_prompt_node(name, model_id):
         ]
     }
 
+# snippet-end:[python.example_code.bedrock-agent-runtime.create_prompt_node]
+
+# snippet-start:[python.example_code.bedrock-agent-runtime.create_output_node]
+
 
 def create_output_node(name):
     """
@@ -193,6 +167,10 @@ def create_output_node(name):
         ]
     }
 
+# snippet-end:[python.example_code.bedrock-agent-runtime.create_output_node]
+
+
+# snippet-start:[python.example_code.bedrock-agent-runtime.create_playlist_flow]
 
 def create_playlist_flow(client, flow_name, role_arn, prompt_model_id):
     """
@@ -252,32 +230,14 @@ def create_playlist_flow(client, flow_name, role_arn, prompt_model_id):
 
     # Create the flow.
 
-    try:
+    response=create_flow(client, flow_name, role_arn, flow_def)
 
-        logger.info("Creating flow: %s.", flow_name)
+    return response
 
-        response = client.create_flow(
-            name=flow_name,
-            description="Playlist creator flow",
-            executionRoleArn=role_arn,
-            definition=flow_def
-        )
-
-        logger.info("Successfully created flow: %s. ID: %s",
-                    flow_name,
-                    {response['id']})
-
-        return response
-
-    except ClientError as e:
-        logger.exception("Client error creating flow: %s", {str(e)})
-        raise
-
-    except Exception as e:
-        logger.exception("Unexepcted error creating flow: %s", {str(e)})
-        raise
+# snippet-end:[python.example_code.bedrock-agent-runtime.create_playlist_flow]
 
 
+# snippet-start:[python.example_code.bedrock-agent-runtime.create_get_model_arn]
 def get_model_arn(client, model_id):
     """
     Gets the Amazon Resource Name (ARN) for a model.
@@ -304,16 +264,28 @@ def get_model_arn(client, model_id):
     except Exception as e:
         logger.exception("Unexpected error getting model ARN: %s", {str(e)})
         raise
+# snippet-end:[python.example_code.bedrock-agent-runtime.create_get_model_arn]
 
 
-def prepare_and_run_flow(bedrock_agent_client, 
-                        bedrock_agent_runtime_client,
-                        iam_client,
-                        role_name,
-                        role_arn,
+
+# snippet-start:[python.example_code.bedrock-agent-runtime.flow_prepare_version_alias]
+
+
+def prepare_flow_version_and_alias(bedrock_agent_client, 
                         flow_id):
+    """
+    Prepares the flow and then creates a flow version and flow alias.
+    Args:
+        bedrock_agent_client: Amazon Bedrock Agent boto3 client.
+        flowd_id (str): The ID of the flow that you want to prepare.
+    Returns: The flow_version and flow_alias. 
 
+    """
+    
     response = prepare_flow(flow_id)
+
+    flow_version = None
+    flow_alias = None
 
     if response.get('status') == 'Prepared':
 
@@ -327,37 +299,41 @@ def prepare_and_run_flow(bedrock_agent_client,
                                        flow_version,
                                        "latest",
                                        f"Alias for flow {flow_id}, version {flow_version}")
+        
+    return flow_version, flow_alias
 
-        run_playlist_flow(bedrock_agent_runtime_client,
-                          flow_id, flow_alias)
-
-        delete_choice = input("Delete flow? y or n : ").lower()
-
-        if delete_choice == 'y':
-            delete_flow_alias(bedrock_agent_client, flow_id, flow_alias)
-            delete_flow_version(bedrock_agent_client,
+# snippet-end:[python.example_code.bedrock-agent-runtime.flow_prepare_version_alias]
+  
+# snippet-start:[python.example_code.bedrock-agent-runtime.flow_delete_resources]  
+def delete_role_resources(bedrock_agent_client,
+                     iam_client,
+                     role_name,
+                     flow_id,
+                     flow_version,
+                     flow_alias):
+    
+    """
+    Deletes the flow, flow alias, flow version, and IAM roles.
+    Args:
+        bedrock_agent_client: Amazon Bedrock Agent boto3 client.
+        iam_client: Amazon IAM boto3 client.
+        role_name (str): The name of the IAM role.
+        flow_id (str): The id of the flow.
+        flow_version (str): The version of the flow.
+        flow_alias (str): The alias of the flow.
+    """
+    
+    delete_flow_alias(bedrock_agent_client, flow_id, flow_alias)
+    delete_flow_version(bedrock_agent_client,
                                 flow_id, flow_version)
-            delete_flow(bedrock_agent_client, flow_id)
-            delete_flow_role(iam_client, role_name)
-        else:
-            print("Flow not deleted.")
-            print(f"Flow ID: {flow_id}")
-            print(f"Role ARN: {role_arn}")
+    delete_flow(bedrock_agent_client, flow_id)
+    delete_flow_role(iam_client, role_name)
 
-    else:
-        print("Flow not prepared. Deleting.")
-        delete_flow(bedrock_agent_client, flow_id)
-        delete_flow_role(iam_client, role_name)
-
-
+# snippet-end:[python.example_code.bedrock-agent-runtime.flow_delete_resources]  
 
 def main():
     """
     Creates, runs, and optionally deletes a Bedrock flow for generating music playlists.
-
-    Raises:
-        ClientError: If AWS API calls fail
-        Exception: For other unexpected errors
 
     Note:
         Requires valid AWS credentials in the default profile
@@ -395,19 +371,41 @@ def main():
             update_role_policy(iam_client, role_name, [
                                response.get('arn'), model_arn])
 
-            # Prepare and run the flow.
-            prepare_and_run_flow(bedrock_agent_client,
-                                 bedrock_agent_runtime_client,
-                                 iam_client,
-                                 role_name,
-                                 role_arn,
-                                 flow_id)
+            # Prepare the flow and flow version.
+            flow_version, flow_alias = prepare_flow_version_and_alias(bedrock_agent_client, flow_id)
 
+            # Run the flow.
+            if flow_version and flow_alias:
+                run_playlist_flow(bedrock_agent_runtime_client,
+                                  flow_id, flow_alias)
+                
+                delete_choice = input("Delete flow? y or n : ").lower()
+
+                if delete_choice == 'y':
+                    delete_role_resources(bedrock_agent_client,
+                                        iam_client,
+                                        role_name,
+                                        flow_id,
+                                        flow_version,
+                                        flow_alias)
+                else:
+                    print("Flow not deleted.")
+                    print(f"Flow ID: {flow_id}")
+                    print(f"Flow version: {flow_version}")
+                    print(f"Flow alias: {flow_alias}")
+                    print(f"Role ARN: {role_arn}")
+
+            else:
+                print("Couldn't run. Deleting flow and role.")
+                delete_flow(bedrock_agent_client, flow_id)
+                delete_flow_role(iam_client, role_name)
+        else:
+            print("Couldn't create flow. Deleting role.")
+            delete_flow_role(iam_client, role_name)
         print("Done")
 
     except Exception as e:
         print(f"Fatal error: {str(e)}")
-
 
 if __name__ == "__main__":
     main()

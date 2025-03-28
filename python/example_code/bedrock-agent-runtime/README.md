@@ -7,7 +7,7 @@ Shows how to use the AWS SDK for Python (Boto3) to work with Amazon Bedrock Agen
 <!--custom.overview.start-->
 <!--custom.overview.end-->
 
-_Amazon Bedrock Agents Runtime offers you the ability to run autonomous agents in your application._
+_Amazon Bedrock Agents Runtime offers you the ability to run agents and flows in your application._
 
 ## ⚠ Important
 
@@ -36,10 +36,9 @@ python -m pip install -r requirements.txt
 
 ### Basics
 
-Code examples that show you how to perform the essential operations within a service.
+Code example that shows how to create a simple flow that generates music playlists.
 
-- [Learn the basics](flows/flow-conversation.py)
-
+- [Learn the basics](flows/playlist_flow.py)
 
 ### Single actions
 
@@ -47,6 +46,16 @@ Code excerpts that show you how to call individual service functions.
 
 - [InvokeAgent](bedrock_agent_runtime_wrapper.py#L33)
 - [InvokeFlow](bedrock_agent_runtime_wrapper.py#L71)
+- [CreateFlow](flows/flow.py#L18) 
+- [PrepareFlow](flows/flow.py#L58) 
+- [DeleteFlow](flows/flow.py#L114) 
+- [CreateFlowVersion](flows/flow_version.py#L18) 
+- [GetFlowVersion](flows/flow_version.py#L55) 
+- [DeleteFlowVersion](flows/flow_version.py#L92) 
+- [CreateFlowAlias](flows/flow_alias.py#L15) 
+- [DeleteFlowAlias](flows/flow_alias.py#L56) 
+
+
 
 
 <!--custom.examples.start-->
@@ -63,21 +72,21 @@ Code excerpts that show you how to call individual service functions.
 
 #### Learn the basics
 
-This example shows you how to use InvokeFlow to converse with an Amazon Bedrock flow that includes an agent node.
-
-
-<!--custom.basic_prereqs.bedrock-agent-runtime_Scenario_ConverseWithFlow.start-->
-<!--custom.basic_prereqs.bedrock-agent-runtime_Scenario_ConverseWithFlow.end-->
+Shows how to create a simple flow that generates music playlists.
+The flow includes a prompt node that generates a playlist for a chosen genre
+and number of songs. The example created the nodes and permissions
+for the flow.
 
 Start the example by running the following at a command prompt:
 
 ```
-python flows/flow-conversation.py
+python flows/flow-playlist_flow.py
 ```
+When prompted, enter the genre of music and the number of songs you want
+in the playlist.
+Optionally, the script can delete the resources that it creates. If you want to use the flow later, such as in the Amazon Bedrock console, enter `n` when the script prompts you to delete resources. Note that you will then need to manually delete the resources.
 
 
-<!--custom.basics.bedrock-agent-runtime_Scenario_ConverseWithFlow.start-->
-<!--custom.basics.bedrock-agent-runtime_Scenario_ConverseWithFlow.end-->
 
 
 ### Tests

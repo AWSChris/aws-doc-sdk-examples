@@ -1,11 +1,10 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 """
-This module provides functionality delete an Amazon Bedrock flow.
+Shows how to use the AWS SDK for Python (Boto3) with the Amazon Bedrock Agents Runtime 
+to manage versions of an Amazon Bedrock flow.
 """
 import logging
-import boto3
-from flow_alias import create_flow_alias, delete_flow_alias
 
 from botocore.exceptions import ClientError
 
@@ -16,16 +15,18 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+# snippet-start:[python.example_code.bedrock-agent-runtime.create_flow_version]
 def create_flow_version(client, flow_id, description):
     """
-    Creates a version of a Bedrock flow.
+    Creates a version of an Amazon Bedrock flow.
 
     Args:
         client: bedrock agent boto3 client.
         flow_id (str): The identifier of the flow.
+        description (str) : A description for the flow.
 
     Returns:
-        str: The ARN for the flow.
+        str: The version for the flow.
     """
     try:
 
@@ -49,6 +50,9 @@ def create_flow_version(client, flow_id, description):
         logging.exception("Unexpected error creating flow : %s", str(e))
         raise
 
+# snippet-end:[python.example_code.bedrock-agent-runtime.create_flow_version]
+
+# snippet-start:[python.example_code.bedrock-agent-runtime.get_flow_version]
 def get_flow_version(client, flow_id, flow_version):
     """
     Gets information about a version of a Bedrock flow.
@@ -65,7 +69,7 @@ def get_flow_version(client, flow_id, flow_version):
 
         logger.info("Deleting flow version for flow: %s.", flow_id)
 
-        # Call DeleteFlowVersion operation
+        # Call GetFlowVersion operation
         response = client.get_flow_version(
             flowIdentifier=flow_id,
             flowVersion=flow_version
@@ -83,8 +87,9 @@ def get_flow_version(client, flow_id, flow_version):
     except Exception as e:
         logging.exception("Unexpected error getting flow version: %s", str(e))
         raise
+# snippet-end:[python.example_code.bedrock-agent-runtime.get_flow_version]
 
-
+# snippet-start:[python.example_code.bedrock-agent-runtime.delete_flow_version]
 def delete_flow_version(client, flow_id, flow_version):
     """
     Deletes a version of a Bedrock flow.
@@ -118,42 +123,4 @@ def delete_flow_version(client, flow_id, flow_version):
         logging.exception("Unexpected deleting flow version: %s", str(e))
         raise
 
-
-
-
-def main():
-    """
-     Entry point that initializes AWS client and executes flow deletion.
-     Uses default AWS profile for authentication.
-     """
-
-    # Replace with your flow ID
-    flow_id = "5T1KFENVFI"
-
-
-    session = boto3.Session(profile_name='default')
-    bedrock_agent_client = session.client('bedrock-agent')
-
- 
-    # Create the flow version and alias
-    flow_version = create_flow_version(bedrock_agent_client,
-                        flow_id,
-                        f"flow version for flow {flow_id}.")
-
-    alias = create_flow_alias(bedrock_agent_client,
-                        flow_id,
-                        flow_version,
-                        "latest",
-                        f"Alias for flow {flow_id}, version {flow_version}")
-    
-    response2 = delete_flow_alias(bedrock_agent_client, flow_id, alias)
-    response1 = delete_flow_version(bedrock_agent_client, flow_id, flow_version)
-
-
-    
-
-   
-
-
-if __name__ == "__main__":
-    main()
+# snippet-end:[python.example_code.bedrock-agent-runtime.delete_flow_version]

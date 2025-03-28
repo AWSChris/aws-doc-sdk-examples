@@ -1,8 +1,61 @@
-import boto3
-import json
-from botocore.exceptions import ClientError
-from time import sleep
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+"""
+Shows how to use the AWS SDK for Python (Boto3) with the Amazon Bedrock Agents Runtime 
+to manage an Amazon Bedrock flow.
+"""
 
+import logging
+from time import sleep
+import boto3
+from botocore.exceptions import ClientError
+
+logging.basicConfig(
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
+
+# snippet-start:[python.example_code.bedrock-agent-runtime.create_flow]  
+def create_flow(client, flow_name, role_arn, flow_def):
+    """
+    Creates an Amazon Bedrock flow.
+
+    Args:
+    client: bedrock agent boto3 client.
+    flow_name (str): The name for the new flow.
+    role_arn (str):  The ARN for the IAM role that use flow uses.
+    flow_def (json): The JSON definition of the flow that you want to create.
+
+    Returns:
+        dict: Flow information if successful, None if an error occurs
+    """
+    try:
+
+        logger.info("Creating flow: %s.", flow_name)
+
+        response = client.create_flow(
+            name=flow_name,
+            description="Playlist creator flow",
+            executionRoleArn=role_arn,
+            definition=flow_def
+        )
+
+        logger.info("Successfully created flow: %s. ID: %s",
+                    flow_name,
+                    {response['id']})
+
+        return response
+
+    except ClientError as e:
+        logger.exception("Client error creating flow: %s", {str(e)})
+        raise
+
+    except Exception as e:
+        logger.exception("Unexepcted error creating flow: %s", {str(e)})
+        raise
+# snippet-end:[python.example_code.bedrock-agent-runtime.create_flow]
+
+# snippet-start:[python.example_code.bedrock-agent-runtime.prepare_flow]
 def prepare_flow(flow_id):
     """
     Prepares an Amazon Bedrock Flow.
@@ -11,7 +64,7 @@ def prepare_flow(flow_id):
         flow_id (str): The identifier of the flow that you want to prepare.
         
     Returns:
-        dict: Flow information if successful, None if an error occurs
+        dict: Flow information if successful, None if an error occurs.
     """
     try:
         # Create a Bedrock Agent client
@@ -42,7 +95,6 @@ def prepare_flow(flow_id):
 
 
         return response
-        
 
         
     except ClientError as e:
@@ -56,7 +108,10 @@ def prepare_flow(flow_id):
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
         return None
+# snippet-end:[python.example_code.bedrock-agent-runtime.prepare_flow]  
 
+
+# snippet-start:[python.example_code.bedrock-agent-runtime.delete_flow]  
 def delete_flow(client, flow_id):
     """
     Deletes a Bedrock flow.
@@ -89,7 +144,7 @@ def delete_flow(client, flow_id):
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
         raise
-
+# snippet-end:[python.example_code.bedrock-agent-runtime.delete_flow]  
 
 def main():
     # Replace with your flow ID
