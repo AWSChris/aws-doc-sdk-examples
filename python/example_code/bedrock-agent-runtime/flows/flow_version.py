@@ -15,7 +15,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# snippet-start:[python.example_code.bedrock-agent-runtime.create_flow_version]
+# snippet-start:[python.example_code.bedrock-agent.create_flow_version]
 def create_flow_version(client, flow_id, description):
     """
     Creates a version of an Amazon Bedrock flow.
@@ -50,9 +50,9 @@ def create_flow_version(client, flow_id, description):
         logging.exception("Unexpected error creating flow : %s", str(e))
         raise
 
-# snippet-end:[python.example_code.bedrock-agent-runtime.create_flow_version]
+# snippet-end:[python.example_code.bedrock-agent.create_flow_version]
 
-# snippet-start:[python.example_code.bedrock-agent-runtime.get_flow_version]
+# snippet-start:[python.example_code.bedrock-agent.get_flow_version]
 def get_flow_version(client, flow_id, flow_version):
     """
     Gets information about a version of a Bedrock flow.
@@ -87,9 +87,9 @@ def get_flow_version(client, flow_id, flow_version):
     except Exception as e:
         logging.exception("Unexpected error getting flow version: %s", str(e))
         raise
-# snippet-end:[python.example_code.bedrock-agent-runtime.get_flow_version]
+# snippet-end:[python.example_code.bedrock-agent.get_flow_version]
 
-# snippet-start:[python.example_code.bedrock-agent-runtime.delete_flow_version]
+# snippet-start:[python.example_code.bedrock-agent.delete_flow_version]
 def delete_flow_version(client, flow_id, flow_version):
     """
     Deletes a version of a Bedrock flow.
@@ -123,4 +123,4 @@ def delete_flow_version(client, flow_id, flow_version):
         logging.exception("Unexpected deleting flow version: %s", str(e))
         raise
 
-# snippet-end:[python.example_code.bedrock-agent-runtime.delete_flow_version]
+# snippet-end:[python.example_code.bedrock-agent.delete_flow_version]

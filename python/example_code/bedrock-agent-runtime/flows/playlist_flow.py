@@ -21,6 +21,7 @@ The script will:
 
 """
 
+# snippet-start:[python.example_code.bedrock-agent-runtine.Scenario_GettingStartedBedrockFlows]
 
 from datetime import datetime
 import logging
@@ -146,13 +147,8 @@ def create_output_node(name):
         name (str): The name of the output node.
 
     Returns:
-        dict: The output node configuration containing:
-            - type (str): Set to "Output"
-            - name (str): The name provided for the node
-            - inputs (list): List containing a single input configuration:
-                - name (str): Set to "document"
-                - type (str): Set to "String"
-                - expression (str): Set to "$.data"
+        dict: The output node configuration containing the output node:
+
     """
 
     return {
@@ -409,3 +405,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# snippet-end:[python.example_code.bedrock-agent-runtine.Scenario_GettingStartedBedrockFlows]

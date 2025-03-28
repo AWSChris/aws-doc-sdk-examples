@@ -209,3 +209,116 @@ bedrock-agent_GettingStartedWithBedrockAgents:
   services:
     bedrock-agent: {CreateAgent, CreateAgentActionGroup, CreateAgentAlias, DeleteAgent, DeleteAgentAlias, GetAgent, ListAgentActionGroups,
                     ListAgents, ListAgentKnowledgeBases, PrepareAgent}
+
+
+bedrock-agent_CreateFlow:
+  languages:
+    Python:
+      versions:
+        - sdk_version: 3
+          github: python/example_code/bedrock-agent-runtime/flows
+          excerpts:
+            - description: Create an Amazon Bedrock Flow.
+              snippet_tags:
+                - python.example_code.bedrock-agent.create_flow
+
+  services:
+    bedrock-agent: {CreateFlow}
+
+bedrock-agent_PrepareFlow:
+  languages:
+    Python:
+      versions:
+        - sdk_version: 3
+          github: python/example_code/bedrock-agent-runtime/flows
+          excerpts:
+            - description: Prepares an Amazon Bedrock Flow.
+              snippet_tags:
+                - python.example_code.bedrock-agent.prepare_flow
+
+  services:
+    bedrock-agent: {PrepareFlow}
+
+bedrock-agent_DeleteFlow:
+  languages:
+    Python:
+      versions:
+        - sdk_version: 3
+          github: python/example_code/bedrock-agent-runtime/flows
+          excerpts:
+            - description: Deletes an Amazon Bedrock Flow.
+              snippet_tags:
+                - python.example_code.bedrock-agent.delete_flow
+
+  services:
+    bedrock-agent: {DeleteFlow}
+
+bedrock-agent_CreateFlowVersion:
+  languages:
+    Python:
+      versions:
+        - sdk_version: 3
+          github: python/example_code/bedrock-agent-runtime/flows
+          excerpts:
+            - description: Creates a version of an Amazon Bedrock Flow.
+              snippet_tags:
+                - python.example_code.bedrock-agent.create_flow_version
+
+  services:
+    bedrock-agent: {CreateFlowVersion}
+
+bedrock-agent_GetFlowVersion:
+  languages:
+    Python:
+      versions:
+        - sdk_version: 3
+          github: python/example_code/bedrock-agent-runtime/flows
+          excerpts:
+            - description: Gets version information for an Amazon Bedrock Flow.
+              snippet_tags:
+                - python.example_code.bedrock-agent.get_flow_version
+
+  services:
+    bedrock-agent: {GetFlowVersion}
+
+bedrock-agent_DeleteFlowVersion:
+  languages:
+    Python:
+      versions:
+        - sdk_version: 3
+          github: python/example_code/bedrock-agent-runtime/flows
+          excerpts:
+            - description: Deletes a version of an Amazon Bedrock Flow.
+              snippet_tags:
+                - python.example_code.bedrock-agent.delete_flow_version
+
+  services:
+    bedrock-agent: {DeleteFlowVersion}
+
+bedrock-agent_CreateFlowAlias:
+  languages:
+    Python:
+      versions:
+        - sdk_version: 3
+          github: python/example_code/bedrock-agent-runtime/flows
+          excerpts:
+            - description: Creates an alias for an Amazon Bedrock Flow.
+              snippet_tags:
+                - python.example_code.bedrock-agent.create_flow_alias
+
+  services:
+    bedrock-agent: {CreateFlowAlias}
+
+bedrock-agent_DeleteFlowAlias:
+  languages:
+    Python:
+      versions:
+        - sdk_version: 3
+          github: python/example_code/bedrock-agent-runtime/flows
+          excerpts:
+            - description: Deletes an alias for an Amazon Bedrock Flow.
+              snippet_tags:
+                - python.example_code.bedrock-agent.delete_flow_alias
+
+  services:
+    bedrock-agent: {DeleteFlowAlias}

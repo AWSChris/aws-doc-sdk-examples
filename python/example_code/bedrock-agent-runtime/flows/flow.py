@@ -15,7 +15,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# snippet-start:[python.example_code.bedrock-agent-runtime.create_flow]  
+# snippet-start:[python.example_code.bedrock-agent.create_flow]
 def create_flow(client, flow_name, role_arn, flow_def):
     """
     Creates an Amazon Bedrock flow.
@@ -53,9 +53,9 @@ def create_flow(client, flow_name, role_arn, flow_def):
     except Exception as e:
         logger.exception("Unexepcted error creating flow: %s", {str(e)})
         raise
-# snippet-end:[python.example_code.bedrock-agent-runtime.create_flow]
+# snippet-end:[python.example_code.bedrock-agent.create_flow]
 
-# snippet-start:[python.example_code.bedrock-agent-runtime.prepare_flow]
+# snippet-start:[python.example_code.bedrock-agent.prepare_flow]
 def prepare_flow(flow_id):
     """
     Prepares an Amazon Bedrock Flow.
@@ -108,10 +108,10 @@ def prepare_flow(flow_id):
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
         return None
-# snippet-end:[python.example_code.bedrock-agent-runtime.prepare_flow]  
+# snippet-end:[python.example_code.bedrock-agent.prepare_flow]  
 
 
-# snippet-start:[python.example_code.bedrock-agent-runtime.delete_flow]  
+# snippet-start:[python.example_code.bedrock-agent.delete_flow]  
 def delete_flow(client, flow_id):
     """
     Deletes a Bedrock flow.
@@ -144,16 +144,4 @@ def delete_flow(client, flow_id):
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
         raise
-# snippet-end:[python.example_code.bedrock-agent-runtime.delete_flow]  
-
-def main():
-    # Replace with your flow ID
-    flow_id = "YMNI7EF04U"
-    
-    # Get and display flow details
-    prepare_flow(flow_id)
-
-
-
-if __name__ == "__main__":
-    main()
+# snippet-end:[python.example_code.bedrock-agent.delete_flow]  

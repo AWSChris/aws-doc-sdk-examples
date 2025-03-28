@@ -12,7 +12,7 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger(__name__)
 
 
-# snippet-start:[python.example_code.bedrock-agent-runtime.create_flow_alias]
+# snippet-start:[python.example_code.bedrock-agent.create_flow_alias]
 def create_flow_alias(client, flow_id, flow_version, name, description):
     """
     Creates a flow alias for a version of a Bedrock flow.
@@ -51,9 +51,9 @@ def create_flow_alias(client, flow_id, flow_version, name, description):
                 flow_id, str(e))
         raise
 
-# snippet-end:[python.example_code.bedrock-agent-runtime.create_flow_alias]
+# snippet-end:[python.example_code.bedrock-agent.create_flow_alias]
 
-# snippet-start:[python.example_code.bedrock-agent-runtime.delete_flow_alias]
+# snippet-start:[python.example_code.bedrock-agent.delete_flow_alias]
 def delete_flow_alias(client, flow_id, flow_alias_id):
     """
     Deletes Bedrock flow alias.
@@ -86,4 +86,4 @@ def delete_flow_alias(client, flow_id, flow_alias_id):
         raise
 
 
-# snippet-end:[python.example_code.bedrock-agent-runtime.delete_flow_alias]
+# snippet-end:[python.example_code.bedrock-agent.delete_flow_alias]
