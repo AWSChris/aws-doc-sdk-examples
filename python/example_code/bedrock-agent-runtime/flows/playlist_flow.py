@@ -41,6 +41,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # snippet-start:[python.example_code.bedrock-agent-runtime.create_input_node]
+
+
 def create_input_node(name):
     """
     Creates an input node configuration for a Bedrock flow.
@@ -69,6 +71,8 @@ def create_input_node(name):
 # snippet-end:[python.example_code.bedrock-agent-runtime.create_input_node]
 
 # snippet-start:[python.example_code.bedrock-agent-runtime.create_prompt_node]
+
+
 def create_prompt_node(name, model_id):
     """
     Creates a prompt node configuration for a Bedrock flow that generates music playlists.
@@ -168,7 +172,7 @@ def create_output_node(name):
 
 # snippet-start:[python.example_code.bedrock-agent-runtime.create_playlist_flow]
 
-def create_playlist_flow(client, flow_name, role_arn, prompt_model_id):
+def create_playlist_flow(client, flow_name, flow_description, role_arn, prompt_model_id):
     """
     Creates the playlist generator flow.
     Args:
@@ -226,7 +230,8 @@ def create_playlist_flow(client, flow_name, role_arn, prompt_model_id):
 
     # Create the flow.
 
-    response=create_flow(client, flow_name, role_arn, flow_def)
+    response = create_flow(
+        client, flow_name, flow_description, role_arn, flow_def)
 
     return response
 
@@ -263,12 +268,11 @@ def get_model_arn(client, model_id):
 # snippet-end:[python.example_code.bedrock-agent-runtime.create_get_model_arn]
 
 
-
 # snippet-start:[python.example_code.bedrock-agent-runtime.flow_prepare_version_alias]
 
 
-def prepare_flow_version_and_alias(bedrock_agent_client, 
-                        flow_id):
+def prepare_flow_version_and_alias(bedrock_agent_client,
+                                   flow_id):
     """
     Prepares the flow and then creates a flow version and flow alias.
     Args:
@@ -277,7 +281,7 @@ def prepare_flow_version_and_alias(bedrock_agent_client,
     Returns: The flow_version and flow_alias. 
 
     """
-    
+
     response = prepare_flow(flow_id)
 
     flow_version = None
@@ -295,19 +299,20 @@ def prepare_flow_version_and_alias(bedrock_agent_client,
                                        flow_version,
                                        "latest",
                                        f"Alias for flow {flow_id}, version {flow_version}")
-        
+
     return flow_version, flow_alias
 
 # snippet-end:[python.example_code.bedrock-agent-runtime.flow_prepare_version_alias]
-  
-# snippet-start:[python.example_code.bedrock-agent-runtime.flow_delete_resources]  
+
+# snippet-start:[python.example_code.bedrock-agent-runtime.flow_delete_resources]
+
+
 def delete_role_resources(bedrock_agent_client,
-                     iam_client,
-                     role_name,
-                     flow_id,
-                     flow_version,
-                     flow_alias):
-    
+                          iam_client,
+                          role_name,
+                          flow_id,
+                          flow_version,
+                          flow_alias):
     """
     Deletes the flow, flow alias, flow version, and IAM roles.
     Args:
@@ -318,14 +323,15 @@ def delete_role_resources(bedrock_agent_client,
         flow_version (str): The version of the flow.
         flow_alias (str): The alias of the flow.
     """
-    
+
     delete_flow_alias(bedrock_agent_client, flow_id, flow_alias)
     delete_flow_version(bedrock_agent_client,
-                                flow_id, flow_version)
+                        flow_id, flow_version)
     delete_flow(bedrock_agent_client, flow_id)
     delete_flow_role(iam_client, role_name)
 
-# snippet-end:[python.example_code.bedrock-agent-runtime.flow_delete_resources]  
+# snippet-end:[python.example_code.bedrock-agent-runtime.flow_delete_resources]
+
 
 def main():
     """
@@ -350,6 +356,7 @@ def main():
         current_time = datetime.now()
         timestamp = current_time.strftime("%Y-%m-%d-%H-%M-%S")
         flow_name = f"FlowPlayList_{timestamp}"
+        flow_description = "A flow to generate a music playlist."
 
         # Create a role for the flow.
         role_name = f"BedrockFlowRole-{flow_name}"
@@ -358,7 +365,7 @@ def main():
 
         # Create the flow.
         response = create_playlist_flow(
-            bedrock_agent_client, flow_name, role_arn, prompt_model_id)
+            bedrock_agent_client, flow_name, flow_description, role_arn, prompt_model_id)
         flow_id = response.get('id')
 
         if flow_id:
@@ -368,22 +375,23 @@ def main():
                                response.get('arn'), model_arn])
 
             # Prepare the flow and flow version.
-            flow_version, flow_alias = prepare_flow_version_and_alias(bedrock_agent_client, flow_id)
+            flow_version, flow_alias = prepare_flow_version_and_alias(
+                bedrock_agent_client, flow_id)
 
             # Run the flow.
             if flow_version and flow_alias:
                 run_playlist_flow(bedrock_agent_runtime_client,
                                   flow_id, flow_alias)
-                
+
                 delete_choice = input("Delete flow? y or n : ").lower()
 
                 if delete_choice == 'y':
                     delete_role_resources(bedrock_agent_client,
-                                        iam_client,
-                                        role_name,
-                                        flow_id,
-                                        flow_version,
-                                        flow_alias)
+                                          iam_client,
+                                          role_name,
+                                          flow_id,
+                                          flow_version,
+                                          flow_alias)
                 else:
                     print("Flow not deleted.")
                     print(f"Flow ID: {flow_id}")
@@ -402,6 +410,7 @@ def main():
 
     except Exception as e:
         print(f"Fatal error: {str(e)}")
+
 
 if __name__ == "__main__":
     main()

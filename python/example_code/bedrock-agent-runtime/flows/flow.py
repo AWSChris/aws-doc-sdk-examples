@@ -10,13 +10,15 @@ from time import sleep
 import boto3
 from botocore.exceptions import ClientError
 
+#from print_json import pretty_print_json
+
 logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
 # snippet-start:[python.example_code.bedrock-agent.create_flow]
-def create_flow(client, flow_name, role_arn, flow_def):
+def create_flow(client, flow_name, flow_description, role_arn, flow_def):
     """
     Creates an Amazon Bedrock flow.
 
@@ -35,7 +37,7 @@ def create_flow(client, flow_name, role_arn, flow_def):
 
         response = client.create_flow(
             name=flow_name,
-            description="Playlist creator flow",
+            description=flow_description,
             executionRoleArn=role_arn,
             definition=flow_def
         )
@@ -43,7 +45,12 @@ def create_flow(client, flow_name, role_arn, flow_def):
         logger.info("Successfully created flow: %s. ID: %s",
                     flow_name,
                     {response['id']})
-
+        """
+        print(flow_name)
+        print(role_arn)
+        pretty_print_json(flow_def)
+        pretty_print_json(response)
+        """
         return response
 
     except ClientError as e:

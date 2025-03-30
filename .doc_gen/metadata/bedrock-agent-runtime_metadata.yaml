@@ -71,7 +71,7 @@ bedrock-agent-runtime_Scenario_ConverseWithFlow:
     bedrock-agent-runtime: {InvokeFlow}
 
 bedrock-agent-runtime_Scenario_CreatePlaylistFlow:
-  title: Create and use a flow.
+  title: Create and use an &BRlong; flow.
   synopsis: Create and use a flow that generates a music playlist.
   category: Basics
   guide_topic:
