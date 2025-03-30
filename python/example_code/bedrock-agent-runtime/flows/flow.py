@@ -10,7 +10,7 @@ from time import sleep
 import boto3
 from botocore.exceptions import ClientError
 
-#from print_json import pretty_print_json
+# from print_json import pretty_print_json
 
 logging.basicConfig(
     level=logging.INFO
@@ -18,6 +18,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # snippet-start:[python.example_code.bedrock-agent.create_flow]
+
+
 def create_flow(client, flow_name, flow_description, role_arn, flow_def):
     """
     Creates an Amazon Bedrock flow.
@@ -63,62 +65,61 @@ def create_flow(client, flow_name, flow_description, role_arn, flow_def):
 # snippet-end:[python.example_code.bedrock-agent.create_flow]
 
 # snippet-start:[python.example_code.bedrock-agent.prepare_flow]
-def prepare_flow(flow_id):
+
+
+def prepare_flow(client, flow_id):
     """
     Prepares an Amazon Bedrock Flow.
-    
+
     Args:
         flow_id (str): The identifier of the flow that you want to prepare.
-        
+
     Returns:
-        dict: Flow information if successful, None if an error occurs.
+        str: The status of the flow preparation
     """
     try:
-        # Create a Bedrock Agent client
-        client = boto3.client('bedrock-agent')
-        
-        # Call GetFlow operation
+
+        # Prepare the flow.
+        logger.info("Preparing flow ID: %s",
+                    flow_id)
+
         response = client.prepare_flow(
             flowIdentifier=flow_id
         )
 
-        id= response.get('id')
         status = response.get('status')
 
-        print(f"Flow ID: {id}")
-        print(f"Flow Status: {status}")
+        while status == "Preparing":
+            logger.info("Preparing flow ID: %s. Status %s",
+                        flow_id, status)
 
-        if status == "Preparing":
-            while status == "Preparing":
-                print(f"Preparing flow - {flow_id}")     
-                sleep(5)
-                response = client.get_flow(
-                    flowIdentifier=flow_id
-                )
-                status = response.get('status')
-                print(f"Flow Status: {status}")
+            sleep(5)
+            response = client.get_flow(
+                flowIdentifier=flow_id
+            )
+            status = response.get('status')
+            print(f"Flow Status: {status}")
+
+        if status == "Prepared":
+            logger.info("Finished preparing flow ID: %s. Status %s",
+                        flow_id, status)
         else:
-            print(f"Flow {flow_id} is not preparing. Current status: {status}")
+            logger.warning("flow ID: %s not prepared. Status %s",
+                           flow_id, status)
 
+        return status
 
-        return response
-
-        
     except ClientError as e:
-        if e.response['Error']['Code'] == 'ResourceNotFoundException':
-            print(f"Flow with ID {flow_id} not found")
-        elif e.response['Error']['Code'] == 'AccessDeniedException':
-            print("You don't have permission to access this flow")
-        else:
-            print(f"Error getting flow details: {str(e)}")
-        return None
+        logger.exception("Client error preparing flow: %s", {str(e)})
+        raise
+
     except Exception as e:
-        print(f"Unexpected error: {str(e)}")
-        return None
-# snippet-end:[python.example_code.bedrock-agent.prepare_flow]  
+        logger.exception("Unexepcted error preparing flow: %s", {str(e)})
+        raise
+# snippet-end:[python.example_code.bedrock-agent.prepare_flow]
 
 
-# snippet-start:[python.example_code.bedrock-agent.delete_flow]  
+# snippet-start:[python.example_code.bedrock-agent.delete_flow]
 def delete_flow(client, flow_id):
     """
     Deletes a Bedrock flow.
@@ -151,4 +152,4 @@ def delete_flow(client, flow_id):
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
         raise
-# snippet-end:[python.example_code.bedrock-agent.delete_flow]  
+# snippet-end:[python.example_code.bedrock-agent.delete_flow]

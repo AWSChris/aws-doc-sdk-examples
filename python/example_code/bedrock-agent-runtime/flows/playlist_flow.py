@@ -190,18 +190,20 @@ def create_playlist_flow(client, flow_name, flow_description, role_arn, prompt_m
     # Create connections between the nodes
     connections = []
 
-    #  First, create connections between the output of the flow input node and each input of the prompt node
-    for input in prompt_node["inputs"]:
+    #  First, create connections between the output of the flow 
+    # input node and each input of the prompt node.
+    for prompt_node_input in prompt_node["inputs"]:
         connections.append(
             {
-                "name": "_".join([input_node["name"], prompt_node["name"], input["name"]]),
+                "name": "_".join([input_node["name"], prompt_node["name"],
+                                   prompt_node_input["name"]]),
                 "source": input_node["name"],
                 "target": prompt_node["name"],
                 "type": "Data",
                 "configuration": {
                     "data": {
                         "sourceOutput": input_node["outputs"][0]["name"],
-                        "targetInput": input["name"]
+                        "targetInput": prompt_node_input["name"]
                     }
                 }
             }
@@ -282,12 +284,12 @@ def prepare_flow_version_and_alias(bedrock_agent_client,
 
     """
 
-    response = prepare_flow(flow_id)
+    status = prepare_flow(bedrock_agent_client, flow_id)
 
     flow_version = None
     flow_alias = None
 
-    if response.get('status') == 'Prepared':
+    if status == 'Prepared':
 
         # Create the flow version and alias.
         flow_version = create_flow_version(bedrock_agent_client,

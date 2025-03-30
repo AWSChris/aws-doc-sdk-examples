@@ -88,3 +88,9 @@ class BedrockAgentStubber(ExampleStubber):
         self._stub_bifurcator(
             "create_flow", expected_params, response, error_code=error_code
         )
+
+    def stub_prepare_flow(self, expected_params, response, error_code=None):
+        self._stub_bifurcator(
+            "prepare_flow", expected_params, response, error_code=error_code
+        )
+

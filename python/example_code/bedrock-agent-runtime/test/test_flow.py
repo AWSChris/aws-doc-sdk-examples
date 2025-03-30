@@ -61,3 +61,35 @@ def test_create_flow(make_stubber, error_code):
             flow.create_flow(bedrock_agent_client, flow_name,
                              flow_description, role_arn, flow_definition)
         assert exc_info.value.response["Error"]["Code"] == error_code
+
+
+@pytest.mark.parametrize("error_code", [None, "TestException"])
+def test_prepare_flow(make_stubber, error_code):
+    bedrock_agent_client = boto3.client("bedrock-agent")
+    bedrock_agent_stubber = make_stubber(bedrock_agent_client)
+
+
+    flow_id = "XXXXXXXXXX"
+
+    expected_params = {
+        "flowIdentifier": flow_id,
+    }
+
+    response = {
+        "id": flow_id,
+        "status" : "Prepared"
+    }
+
+    bedrock_agent_stubber.stub_prepare_flow(
+        expected_params, response, error_code=error_code
+    )
+
+    if error_code is None:
+        call_response = flow.prepare_flow(
+            bedrock_agent_client, flow_id)
+        assert call_response == "Prepared"
+
+    else:
+        with pytest.raises(ClientError) as exc_info:
+            flow.prepare_flow(bedrock_agent_client, flow_id)
+        assert exc_info.value.response["Error"]["Code"] == error_code
