@@ -125,3 +125,71 @@ def test_prepare_flow(make_stubber, error_code):
         with pytest.raises(ClientError) as exc_info:
             flow.prepare_flow(bedrock_agent_client, FLOW_ID)
         assert exc_info.value.response["Error"]["Code"] == error_code
+
+
+@pytest.mark.parametrize("error_code", [None, "TestException"])
+def test_get_flow(make_stubber, error_code):
+    bedrock_agent_client = boto3.client("bedrock-agent")
+    bedrock_agent_stubber = make_stubber(bedrock_agent_client)
+
+    expected_params = {
+        "flowIdentifier": FLOW_ID
+    }
+
+    response = {
+        "arn": FLOW_ARN,
+        "createdAt": "2025-03-29T21:34:43.048609+00:00",
+        "definition": FLOW_DEFINITION,
+        "description": FLOW_DESCRIPTION,
+        "executionRoleArn": ROLE_ARN,
+        "id": FLOW_ID,
+        "name": FLOW_NAME,
+        "status": "NotPrepared",
+        "updatedAt": "2025-03-29T21:34:43.048609+00:00",
+        "version": "DRAFT"
+    }
+
+    bedrock_agent_stubber.stub_get_flow(
+        expected_params, response, error_code=error_code
+    )
+
+    if error_code is None:
+        call_response = flow.get_flow(
+            bedrock_agent_client, FLOW_ID)
+
+        assert call_response["status"] == "NotPrepared"
+
+    else:
+        with pytest.raises(ClientError) as exc_info:
+            flow.get_flow(bedrock_agent_client, FLOW_ID)
+        assert exc_info.value.response["Error"]["Code"] == error_code
+
+
+@pytest.mark.parametrize("error_code", [None, "TestException"])
+def test_delete_flow(make_stubber, error_code):
+    bedrock_agent_client = boto3.client("bedrock-agent")
+    bedrock_agent_stubber = make_stubber(bedrock_agent_client)
+
+    expected_params = {
+        "flowIdentifier": FLOW_ID,
+        "skipResourceInUseCheck" : True
+    }
+
+    response = {
+        "id": FLOW_ID
+    }
+
+    bedrock_agent_stubber.stub_delete_flow(
+        expected_params, response, error_code=error_code
+    )
+
+    if error_code is None:
+        call_response = flow.delete_flow(
+            bedrock_agent_client, FLOW_ID)
+
+        assert call_response["id"] == FLOW_ID
+
+    else:
+        with pytest.raises(ClientError) as exc_info:
+            flow.delete_flow(bedrock_agent_client, FLOW_ID)
+        assert exc_info.value.response["Error"]["Code"] == error_code

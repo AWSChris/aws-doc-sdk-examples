@@ -122,34 +122,75 @@ def prepare_flow(client, flow_id):
 # snippet-start:[python.example_code.bedrock-agent.delete_flow]
 def delete_flow(client, flow_id):
     """
-    Deletes a Bedrock flow.
+    Deletes an Amazon Bedrock flow.
 
     Args:
     client: bedrock agent boto3 client.
         flow_id (str): The identifier of the flow that you want to delete.
 
     Returns:
-        dict: Flow information if successful, None if an error occurs
+        dict: The response from the DeleteFLow operation.
     """
     try:
 
+        logger.info("Deleting flow ID: %s.",
+            flow_id)
+
         # Call DeleteFlow operation
         response = client.delete_flow(
-            flowIdentifier=flow_id
+            flowIdentifier=flow_id,
+            skipResourceInUseCheck = True
         )
 
-        print(f"Flow {flow_id} deleted successfully")
+        logger.info("Finished deleting flow ID: %s", flow_id)
+        
         return response
 
     except ClientError as e:
-        if e.response['Error']['Code'] == 'ResourceNotFoundException':
-            print(f"Flow with ID {flow_id} not found")
-        elif e.response['Error']['Code'] == 'AccessDeniedException':
-            print("You don't have permission to delete this flow")
-        else:
-            print(f"Error deleting flow: {str(e)}")
+        logger.exception("Client error deleting flow: %s", {str(e)})
         raise
+
     except Exception as e:
-        print(f"Unexpected error: {str(e)}")
+        logger.exception("Unexepcted error deleting flow: %s", {str(e)})
         raise
+
 # snippet-end:[python.example_code.bedrock-agent.delete_flow]
+
+# snippet-start:[python.example_code.bedrock-agent.get_flow]
+def get_flow(client, flow_id):
+    """
+    Gets a Bedrock flow.
+
+    Args:
+    client: bedrock agent boto3 client.
+        flow_id (str): The identifier of the flow that you want to get.
+
+    Returns:
+        dict: The response from the GetFlow operation.
+    """
+    try:
+
+        logger.info("Getting flow ID: %s.",
+            flow_id)
+
+        # Call GetFLow operation
+        response = client.get_flow(
+            flowIdentifier=flow_id
+        )
+
+        logger.info("Retrieved flow ID: %s. Name: %s", flow_id,
+                    response['name'])
+
+
+        return response
+
+    except ClientError as e:
+        logger.exception("Client error getting flow: %s", {str(e)})
+        raise
+
+    except Exception as e:
+        logger.exception("Unexepcted error getting flow: %s", {str(e)})
+        raise
+
+
+# snippet-end:[python.example_code.bedrock-agent.get_flow]
