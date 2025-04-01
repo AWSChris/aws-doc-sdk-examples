@@ -114,3 +114,17 @@ class BedrockAgentStubber(ExampleStubber):
             "delete_flow_alias", expected_params, response, error_code=error_code
         )
 
+    def stub_create_flow_version(self, expected_params, response, error_code=None):
+        self._stub_bifurcator(
+            "create_flow_version", expected_params, response, error_code=error_code
+        )
+    def stub_get_flow_version(self, expected_params, response, error_code=None):
+        self._stub_bifurcator(
+            "get_flow_version", expected_params, response, error_code=error_code
+        )
+    
+    def stub_delete_flow_version(self, expected_params, response, error_code=None):
+        self._stub_bifurcator(
+            "delete_flow_version", expected_params, response, error_code=error_code
+        )
+

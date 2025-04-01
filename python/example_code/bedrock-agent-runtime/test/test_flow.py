@@ -68,12 +68,9 @@ def test_prepare_flow(make_stubber, error_code):
     bedrock_agent_client = boto3.client("bedrock-agent")
     bedrock_agent_stubber = make_stubber(bedrock_agent_client)
 
-
-
     expected_params = {
         "flowIdentifier": FLOW_ID,
     }
-
 
     if error_code is None:
 
@@ -90,28 +87,17 @@ def test_prepare_flow(make_stubber, error_code):
         bedrock_agent_stubber.stub_get_flow(
             expected_params,
             {
-        "arn": FLOW_ARN,
-        "createdAt": "2025-03-29T21:34:43.048609+00:00",
-        "definition": FLOW_DEFINITION,
-        "description": FLOW_DESCRIPTION,
-        "executionRoleArn": ROLE_ARN,
-        "id": FLOW_ID,
-        "name": FLOW_NAME,
-        "status": "Prepared",
-        "updatedAt": "2025-03-29T21:34:43.048609+00:00",
-        "version": "DRAFT"
-    }
-
-        )
-
-        # Third stub - Flow is prepared.
-        bedrock_agent_stubber.stub_prepare_flow(
-            expected_params,
-            {
+                "arn": FLOW_ARN,
+                "createdAt": "2025-03-29T21:34:43.048609+00:00",
+                "definition": FLOW_DEFINITION,
+                "description": FLOW_DESCRIPTION,
+                "executionRoleArn": ROLE_ARN,
                 "id": FLOW_ID,
-                "status": "Prepared"
-            }
-        )
+                "name": FLOW_NAME,
+                "status": "Prepared",
+                "updatedAt": "2025-03-29T21:34:43.048609+00:00",
+                "version": "DRAFT"
+            })
 
         call_response = flow.prepare_flow(bedrock_agent_client, FLOW_ID)
         assert call_response == "Prepared"
@@ -172,7 +158,7 @@ def test_delete_flow(make_stubber, error_code):
 
     expected_params = {
         "flowIdentifier": FLOW_ID,
-        "skipResourceInUseCheck" : True
+        "skipResourceInUseCheck": True
     }
 
     response = {
