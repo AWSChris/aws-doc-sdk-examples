@@ -99,6 +99,16 @@ class BedrockAgentStubber(ExampleStubber):
         self._stub_bifurcator(
             "prepare_flow", expected_params, response, error_code=error_code
         )
+
+    def stub_update_flow(self, expected_params, response, error_code=None):
+        self._stub_bifurcator(
+            "update_flow", expected_params, response, error_code=error_code
+        )
+
+    def stub_list_flows(self, expected_params, response, error_code=None):
+        self._stub_bifurcator(
+            "list_flows", expected_params, response, error_code=error_code
+        )
     
     def stub_delete_flow(self, expected_params, response, error_code=None):
         self._stub_bifurcator(
@@ -107,6 +117,15 @@ class BedrockAgentStubber(ExampleStubber):
     def stub_create_flow_alias(self, expected_params, response, error_code=None):
         self._stub_bifurcator(
             "create_flow_alias", expected_params, response, error_code=error_code
+        )
+    def stub_update_flow_alias(self, expected_params, response, error_code=None):
+        self._stub_bifurcator(
+            "update_flow_alias", expected_params, response, error_code=error_code
+        )
+
+    def stub_list_flow_aliases(self, expected_params, response, error_code=None):
+        self._stub_bifurcator(
+            "list_flow_aliases", expected_params, response, error_code=error_code
         )
     
     def stub_delete_flow_alias(self, expected_params, response, error_code=None):
@@ -126,5 +145,10 @@ class BedrockAgentStubber(ExampleStubber):
     def stub_delete_flow_version(self, expected_params, response, error_code=None):
         self._stub_bifurcator(
             "delete_flow_version", expected_params, response, error_code=error_code
+        )
+
+    def stub_list_flow_versions(self, expected_params, response, error_code=None):
+        self._stub_bifurcator(
+            "list_flow_versions", expected_params, response, error_code=error_code
         )
 

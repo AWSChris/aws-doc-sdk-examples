@@ -49,7 +49,6 @@ def create_flow_version(client, flow_id, description):
     except Exception as e:
         logging.exception("Unexpected error creating flow : %s", str(e))
         raise
-
 # snippet-end:[python.example_code.bedrock-agent.create_flow_version]
 
 # snippet-start:[python.example_code.bedrock-agent.get_flow_version]
@@ -124,3 +123,55 @@ def delete_flow_version(client, flow_id, flow_version):
         raise
 
 # snippet-end:[python.example_code.bedrock-agent.delete_flow_version]
+
+
+# snippet-start:[python.example_code.bedrock-agent.list_flow_versions]
+def list_flow_versions(client, flow_id):
+    """
+    Lists the versions of an Amazon Bedrock flow.
+
+    Args:
+        client: bedrock agent boto3 client.
+        flow_id (str): The identifier of the flow.
+
+    Returns:
+        dict: The response from ListFlowVersions.
+    """
+    try:
+
+        finished = False
+
+        logger.info("Listing flow versions for flow: %s.", flow_id)
+
+        response = client.list_flow_versions(
+            flowIdentifier=flow_id,
+            maxResults=10)
+
+        while finished is False:
+
+            print(f"Versions for flow:{flow_id}")
+            for version in response['flowVersionSummaries']:
+                print(f"Version: {version['version']}")
+                print(f"Status: {version['status']}\n")
+
+                if 'nextToken' in response:
+                    next_token = response['nextToken']
+                    response = client.list_flow_versions(maxResults=10,
+                                                nextToken=next_token)
+                else:
+                    finished = True
+
+
+        logging.info("Successfully listed flow versions for flow %s.",
+                flow_id)
+        
+        return response
+
+    except ClientError as e:
+        logging.exception("Client error listing flow versions: %s", str(e))
+        raise
+    except Exception as e:
+        logging.exception("Unexpected error listing flow versions: %s", str(e))
+        raise
+# snippet-end:[python.example_code.bedrock-agent.list_flow_versions]
+
