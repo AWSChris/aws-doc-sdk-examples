@@ -15,9 +15,7 @@ The module interacts with a pre-configured Bedrock flow that expects:
 """
 
 import logging
-import botocore
-
-import botocore.exceptions
+from botocore.exceptions import ClientError
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -50,8 +48,6 @@ def invoke_flow(client, flow_id, flow_alias_id, input_data):
 
     response = client.invoke_flow(**request_params)
 
-
-    input_required = None
     flow_status = ""
 
     # Process the streaming response
@@ -63,15 +59,14 @@ def invoke_flow(client, flow_id, flow_alias_id, input_data):
 
         # Print the model output.
         elif 'flowOutputEvent' in event:
-            print(event['flowOutputEvent']['content']['document'])
+            logger.info(event['flowOutputEvent']['content']['document'])
 
         # Log trace events.
         elif 'flowTraceEvent' in event:
             logger.info("Flow trace:  %s", event['flowTraceEvent'])
 
     return {
-        "flow_status": flow_status,
-        "input_required": input_required,
+        "flow_status": flow_status
     }
 # snippet-end:[python.example_code.bedrock-agent-runtime.flow_invoke_flow]  
 
@@ -118,16 +113,17 @@ def run_playlist_flow(bedrock_agent_client, flow_id, flow_alias_id):
                 # The flow completed successfully.
                 logger.info("The flow %s successfully completed.", flow_id)
         else:
-            print (f"Status: {status}")
+            logger.warning("Flow status: %s",status)
 
-    except botocore.exceptions.ClientError as e:
+    except ClientError as e:
         print(f"Client error: {str(e)}")
         logger.error("Client error: %s", {str(e)})
+        raise
 
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
         logger.error("An error occurred: %s", {str(e)})
         logger.error("Error type: %s", {type(e)})
+        raise
 
 # snippet-end:[python.example_code.bedrock-agent-runtime.run_playlist_flow]  
 
