@@ -21,15 +21,19 @@ from botocore.exceptions import ClientError
 import sys
 import os
 
-# Handle imports for both direct execution and when imported as a module
-try:
-    # When imported as a module from tests
-    from prompts.prompt import create_prompt, get_prompt, update_prompt, delete_prompt
-    from prompts.run_prompt import invoke_prompt
-except ImportError:
-    # When run directly
-    from prompt import create_prompt, get_prompt, update_prompt, delete_prompt
-    from run_prompt import invoke_prompt
+# Import the modules using relative imports that work in all contexts
+import os
+import sys
+
+# Add the parent directory to sys.path if needed
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+# Now import the modules
+from prompts.prompt import create_prompt, update_prompt, delete_prompt
+from prompts.run_prompt import invoke_prompt
 
 logging.basicConfig(
     level=logging.INFO,

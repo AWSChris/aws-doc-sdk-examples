@@ -6,314 +6,409 @@ Unit tests for bedrock_agent_wrapper.py.
 """
 
 import boto3
-import pytest
 from botocore.exceptions import ClientError
+import pytest
 
-from conftest import FakeData as Fake
-from bedrock_agent_wrapper import BedrockAgentWrapper
+from test.conftest import FakeData as Fake
 
-
-@pytest.fixture(scope="module")
-def client():
-    return boto3.client(service_name="bedrock-agent", region_name="us-east-1")
+import bedrock_agent_wrapper as wrapper
 
 
-@pytest.fixture(scope="function")
-def stubber(client, make_stubber):
-    return make_stubber(client)
+@pytest.mark.parametrize("error_code", [None, "TestException"])
+def test_list_foundation_models(make_stubber, error_code):
+    bedrock_client = boto3.client("bedrock")
+    bedrock_stubber = make_stubber(bedrock_client)
 
-
-@pytest.fixture(scope="function")
-def wrapper(client):
-    return BedrockAgentWrapper(client)
-
-
-@pytest.mark.parametrize("error_code", [None, "ClientError"])
-def test_create_agent(stubber, wrapper, error_code):
-    name = Fake.AGENT_NAME
-    foundation_model = Fake.FOUNDATION_MODEL_ID
-    role_arn = Fake.ARN
-    instruction = Fake.INSTRUCTION
-
-    expected_params = {
-        "agentName": name,
-        "foundationModel": foundation_model,
-        "agentResourceRoleArn": role_arn,
-        "instruction": instruction,
-    }
+    expected_params = {}
 
     response = {
-        "agent": {
-            "agentStatus": "NOT_PREPARED",
-            "idleSessionTTLInSeconds": 60,
-            "agentId": Fake.AGENT_ID,
-            "agentName": name,
-            "agentArn": Fake.ARN,
-            "foundationModel": foundation_model,
-            "instruction": Fake.INSTRUCTION,
-            "agentVersion": Fake.VERSION,
-            "agentResourceRoleArn": role_arn,
-            "createdAt": Fake.TIMESTAMP,
-            "updatedAt": Fake.TIMESTAMP,
-        }
-    }
-
-    stubber.stub_create_agent(expected_params, response, error_code=error_code)
-
-    if error_code is None:
-        created_agent = wrapper.create_agent(
-            name, foundation_model, role_arn, instruction
-        )
-        assert created_agent is not None
-    else:
-        with pytest.raises(ClientError) as exc_info:
-            wrapper.create_agent(name, foundation_model, role_arn, instruction)
-            assert exc_info.value.response["Error"]["Code"] == error_code
-
-
-@pytest.mark.parametrize("error_code", [None, "ClientError"])
-def test_create_agent_action_group(stubber, wrapper, error_code):
-    name = Fake.ACTION_GROUP_NAME
-    description = Fake.DESCRIPTION
-    agent_id = Fake.AGENT_ID
-    agent_version = Fake.VERSION
-    function_arn = Fake.ARN
-    api_schema = Fake.API_SCHEMA
-
-    expected_params = {
-        "actionGroupName": name,
-        "description": description,
-        "agentId": agent_id,
-        "agentVersion": agent_version,
-        "actionGroupExecutor": {"lambda": function_arn},
-        "apiSchema": {"payload": api_schema},
-    }
-    response = {
-        "agentActionGroup": {
-            "agentId": agent_id,
-            "agentVersion": agent_version,
-            "actionGroupState": "ENABLED",
-            "actionGroupName": name,
-            "actionGroupId": Fake.ACTION_GROUP_ID,
-            "createdAt": Fake.TIMESTAMP,
-            "updatedAt": Fake.TIMESTAMP,
-        }
-    }
-
-    stubber.stub_create_agent_action_group(
-        expected_params, response, error_code=error_code
-    )
-
-    if error_code is None:
-        created_action_group = wrapper.create_agent_action_group(
-            name, description, agent_id, agent_version, function_arn, api_schema
-        )
-        assert created_action_group is not None
-    else:
-        with pytest.raises(ClientError) as exc_info:
-            wrapper.create_agent_action_group(
-                name, description, agent_id, agent_version, function_arn, api_schema
-            )
-            assert exc_info.value.response["Error"]["Code"] == error_code
-
-
-@pytest.mark.parametrize("error_code", [None, "ClientError"])
-def test_create_agent_alias(stubber, wrapper, error_code):
-    name = Fake.ALIAS_NAME
-    agent_id = Fake.AGENT_ID
-
-    expected_params = {"agentId": agent_id, "agentAliasName": name}
-    created_alias = {
-        "agentAlias": {
-            "agentId": "",
-            "agentAliasId": Fake.ALIAS_ID,
-            "agentAliasName": Fake.ALIAS_NAME,
-            "agentAliasArn": Fake.ARN,
-            "routingConfiguration": [],
-            "createdAt": Fake.TIMESTAMP,
-            "updatedAt": Fake.TIMESTAMP,
-            "agentAliasStatus": "",
-        }
-    }
-
-    stubber.stub_create_agent_alias(
-        expected_params, created_alias, error_code=error_code
-    )
-
-    if error_code is None:
-        created_alias = wrapper.create_agent_alias(name, agent_id)
-        assert created_alias is not None
-    else:
-        with pytest.raises(ClientError) as exc_info:
-            wrapper.create_agent_alias(name, agent_id)
-            assert exc_info.value.response["Error"]["Code"] == error_code
-
-
-@pytest.mark.parametrize("error_code", [None, "ClientError"])
-def test_delete_agent(stubber, wrapper, error_code):
-    agent_id = Fake.AGENT_ID
-
-    expected_params = {"agentId": agent_id, "skipResourceInUseCheck": False}
-    response = {"agentStatus": "DELETING", "agentId": agent_id}
-
-    stubber.stub_delete_agent(expected_params, response, error_code=error_code)
-
-    if error_code is None:
-        response = wrapper.delete_agent(agent_id)
-        assert response is not None
-    else:
-        with pytest.raises(ClientError) as exc_info:
-            wrapper.delete_agent(agent_id)
-            assert exc_info.value.response["Error"]["Code"] == error_code
-
-
-@pytest.mark.parametrize("error_code", [None, "ClientError"])
-def test_delete_agent_alias(stubber, wrapper, error_code):
-    agent_id = Fake.AGENT_ID
-    agent_alias_id = Fake.ALIAS_ID
-
-    expected_params = {"agentId": agent_id, "agentAliasId": agent_alias_id}
-    response = {
-        "agentId": agent_id,
-        "agentAliasId": agent_alias_id,
-        "agentAliasStatus": "DELETING",
-    }
-
-    stubber.stub_delete_agent_alias(expected_params, response, error_code=error_code)
-
-    if error_code is None:
-        response = wrapper.delete_agent_alias(agent_id, agent_alias_id)
-        assert response is not None
-    else:
-        with pytest.raises(ClientError) as exc_info:
-            wrapper.delete_agent_alias(agent_id, agent_alias_id)
-            assert exc_info.value.response["Error"]["Code"] == error_code
-
-
-@pytest.mark.parametrize("error_code", [None, "ClientError"])
-def test_get_agent(stubber, wrapper, error_code):
-    agent_id = Fake.AGENT_ID
-
-    expected_params = {"agentId": agent_id}
-    response = {
-        "agent": {
-            "agentStatus": "PREPARED",
-            "idleSessionTTLInSeconds": 60,
-            "agentId": agent_id,
-            "agentName": Fake.AGENT_ID,
-            "agentArn": Fake.ARN,
-            "agentVersion": Fake.VERSION,
-            "agentResourceRoleArn": Fake.ARN,
-            "createdAt": Fake.TIMESTAMP,
-            "updatedAt": Fake.TIMESTAMP,
-        }
-    }
-
-    stubber.stub_get_agent(expected_params, response, error_code=error_code)
-
-    if error_code is None:
-        agent = wrapper.get_agent(agent_id)
-        assert agent is not None
-    else:
-        with pytest.raises(ClientError) as exc_info:
-            wrapper.get_agent(agent_id)
-            assert exc_info.value.response["Error"]["Code"] == error_code
-
-
-@pytest.mark.parametrize("error_code", [None, "ClientError"])
-def test_list_agents(stubber, wrapper, error_code):
-    expected_params = {"maxResults": 10}
-    response = {
-        "agentSummaries": [
+        "modelSummaries": [
             {
-                "agentStatus": "PREPARED",
-                "agentId": Fake.AGENT_ID,
-                "agentName": Fake.AGENT_NAME,
-                "updatedAt": Fake.TIMESTAMP,
-                "description": Fake.DESCRIPTION,
-                "latestAgentVersion": Fake.VERSION,
+                "modelId": Fake.FOUNDATION_MODEL_ID,
+                "modelName": "Fake Foundation Model",
+                "providerName": "Fake Provider",
+                "inputModalities": ["TEXT"],
+                "outputModalities": ["TEXT"],
+                "responseStreamingSupported": True,
+                "customizationsSupported": ["FINE_TUNING"],
+                "inferenceTypesSupported": ["ON_DEMAND"],
+                "modelLifecycle": {
+                    "status": "ACTIVE"
+                }
             }
         ]
     }
 
-    stubber.stub_list_agents(expected_params, response, error_code=error_code)
-
-    if error_code is None:
-        got_agents = wrapper.list_agents()
-        assert len(got_agents) > 0
-    else:
-        with pytest.raises(ClientError) as exc_info:
-            wrapper.list_agents()
-        assert exc_info.value.response["Error"]["Code"] == error_code
-
-
-@pytest.mark.parametrize("error_code", [None, "ClientError"])
-def test_list_agent_action_groups(stubber, wrapper, error_code):
-    expected_params = {
-        "agentId": Fake.AGENT_ID,
-        "agentVersion": Fake.VERSION,
-        "maxResults": 10,
-    }
-    response = {"actionGroupSummaries": []}
-
-    stubber.stub_list_agent_action_groups(
+    bedrock_stubber.stub_list_foundation_models(
         expected_params, response, error_code=error_code
     )
 
     if error_code is None:
-        got_action_groups = wrapper.list_agent_action_groups(
-            Fake.AGENT_ID, Fake.VERSION
-        )
-        assert got_action_groups is not None
+        models = wrapper.list_foundation_models(bedrock_client)
+        assert len(models) == 1
+        assert models[0]["modelId"] == Fake.FOUNDATION_MODEL_ID
     else:
         with pytest.raises(ClientError) as exc_info:
-            wrapper.list_agent_action_groups(Fake.AGENT_ID, Fake.VERSION)
+            wrapper.list_foundation_models(bedrock_client)
         assert exc_info.value.response["Error"]["Code"] == error_code
 
 
-@pytest.mark.parametrize("error_code", [None, "ClientError"])
-def test_list_agent_knowledge_bases(stubber, wrapper, error_code):
+@pytest.mark.parametrize("error_code", [None, "TestException"])
+def test_get_foundation_model(make_stubber, error_code):
+    bedrock_client = boto3.client("bedrock")
+    bedrock_stubber = make_stubber(bedrock_client)
+
     expected_params = {
-        "agentId": Fake.AGENT_ID,
-        "agentVersion": Fake.VERSION,
-        "maxResults": 10,
+        "modelIdentifier": Fake.FOUNDATION_MODEL_ID
     }
-    response = {"agentKnowledgeBaseSummaries": []}
-
-    stubber.stub_list_agent_knowledge_bases(
-        expected_params, response, error_code=error_code
-    )
-
-    if error_code is None:
-        got_action_groups = wrapper.list_agent_knowledge_bases(
-            Fake.AGENT_ID, Fake.VERSION
-        )
-        assert got_action_groups is not None
-    else:
-        with pytest.raises(ClientError) as exc_info:
-            wrapper.list_agent_knowledge_bases(Fake.AGENT_ID, Fake.VERSION)
-        assert exc_info.value.response["Error"]["Code"] == error_code
-
-
-@pytest.mark.parametrize("error_code", [None, "ClientError"])
-def test_prepare_agent(stubber, wrapper, error_code):
-    agent_id = Fake.AGENT_ID
-
-    expected_params = {"agentId": agent_id}
 
     response = {
-        "agentStatus": "PREPARED",
-        "agentId": agent_id,
-        "agentVersion": Fake.VERSION,
-        "preparedAt": Fake.TIMESTAMP,
+        "modelDetails": {
+            "modelId": Fake.FOUNDATION_MODEL_ID,
+            "modelName": "Fake Foundation Model",
+            "providerName": "Fake Provider",
+            "inputModalities": ["TEXT"],
+            "outputModalities": ["TEXT"],
+            "responseStreamingSupported": True,
+            "customizationsSupported": ["FINE_TUNING"],
+            "inferenceTypesSupported": ["ON_DEMAND"],
+            "modelLifecycle": {
+                "status": "ACTIVE"
+            }
+        }
     }
 
-    stubber.stub_prepare_agent(expected_params, response, error_code=error_code)
+    bedrock_stubber.stub_get_foundation_model(
+        expected_params, response, error_code=error_code
+    )
 
     if error_code is None:
-        agent = wrapper.prepare_agent(agent_id)
-        assert agent is not None
+        model = wrapper.get_foundation_model(bedrock_client, Fake.FOUNDATION_MODEL_ID)
+        assert model["modelId"] == Fake.FOUNDATION_MODEL_ID
     else:
         with pytest.raises(ClientError) as exc_info:
-            wrapper.prepare_agent(agent_id)
-            assert exc_info.value.response["Error"]["Code"] == error_code
+            wrapper.get_foundation_model(bedrock_client, Fake.FOUNDATION_MODEL_ID)
+        assert exc_info.value.response["Error"]["Code"] == error_code
+
+
+@pytest.mark.parametrize("error_code", [None, "TestException"])
+def test_create_agent(make_stubber, error_code):
+    bedrock_agent_client = boto3.client("bedrock-agent")
+    bedrock_agent_stubber = make_stubber(bedrock_agent_client)
+
+    expected_params = {
+        "agentName": Fake.AGENT_NAME,
+        "foundationModel": Fake.FOUNDATION_MODEL_ID,
+        "instruction": Fake.INSTRUCTION,
+        "description": Fake.DESCRIPTION,
+        "customerEncryptionKeyArn": None,
+        "idleSessionTTLInSeconds": 1800,
+        "promptOverrideConfiguration": None,
+        "clientToken": None
+    }
+
+    response = {
+        "agent": {
+            "agentId": Fake.AGENT_ID,
+            "agentName": Fake.AGENT_NAME,
+            "agentArn": Fake.ARN,
+            "agentStatus": "CREATING",
+            "agentVersion": "DRAFT",
+            "createdAt": Fake.TIMESTAMP,
+            "description": Fake.DESCRIPTION,
+            "foundationModel": Fake.FOUNDATION_MODEL_ID,
+            "idleSessionTTLInSeconds": 1800,
+            "instruction": Fake.INSTRUCTION,
+            "updatedAt": Fake.TIMESTAMP
+        }
+    }
+
+    bedrock_agent_stubber.stub_create_agent(
+        expected_params, response, error_code=error_code
+    )
+
+    if error_code is None:
+        agent = wrapper.create_agent(
+            bedrock_agent_client,
+            Fake.AGENT_NAME,
+            Fake.FOUNDATION_MODEL_ID,
+            Fake.INSTRUCTION,
+            Fake.DESCRIPTION
+        )
+        assert agent["agentId"] == Fake.AGENT_ID
+    else:
+        with pytest.raises(ClientError) as exc_info:
+            wrapper.create_agent(
+                bedrock_agent_client,
+                Fake.AGENT_NAME,
+                Fake.FOUNDATION_MODEL_ID,
+                Fake.INSTRUCTION,
+                Fake.DESCRIPTION
+            )
+        assert exc_info.value.response["Error"]["Code"] == error_code
+
+
+@pytest.mark.parametrize("error_code", [None, "TestException"])
+def test_get_agent(make_stubber, error_code):
+    bedrock_agent_client = boto3.client("bedrock-agent")
+    bedrock_agent_stubber = make_stubber(bedrock_agent_client)
+
+    expected_params = {
+        "agentId": Fake.AGENT_ID,
+        "agentVersion": "DRAFT"
+    }
+
+    response = {
+        "agent": {
+            "agentId": Fake.AGENT_ID,
+            "agentName": Fake.AGENT_NAME,
+            "agentArn": Fake.ARN,
+            "agentStatus": "PREPARED",
+            "agentVersion": "DRAFT",
+            "createdAt": Fake.TIMESTAMP,
+            "description": Fake.DESCRIPTION,
+            "foundationModel": Fake.FOUNDATION_MODEL_ID,
+            "idleSessionTTLInSeconds": 1800,
+            "instruction": Fake.INSTRUCTION,
+            "updatedAt": Fake.TIMESTAMP
+        }
+    }
+
+    bedrock_agent_stubber.stub_get_agent(
+        expected_params, response, error_code=error_code
+    )
+
+    if error_code is None:
+        agent = wrapper.get_agent(bedrock_agent_client, Fake.AGENT_ID)
+        assert agent["agentId"] == Fake.AGENT_ID
+    else:
+        with pytest.raises(ClientError) as exc_info:
+            wrapper.get_agent(bedrock_agent_client, Fake.AGENT_ID)
+        assert exc_info.value.response["Error"]["Code"] == error_code
+
+
+@pytest.mark.parametrize("error_code", [None, "TestException"])
+def test_delete_agent(make_stubber, error_code):
+    bedrock_agent_client = boto3.client("bedrock-agent")
+    bedrock_agent_stubber = make_stubber(bedrock_agent_client)
+
+    expected_params = {
+        "agentId": Fake.AGENT_ID,
+        "skipResourceInUseCheck": False
+    }
+
+    response = {}
+
+    bedrock_agent_stubber.stub_delete_agent(
+        expected_params, response, error_code=error_code
+    )
+
+    if error_code is None:
+        wrapper.delete_agent(bedrock_agent_client, Fake.AGENT_ID)
+    else:
+        with pytest.raises(ClientError) as exc_info:
+            wrapper.delete_agent(bedrock_agent_client, Fake.AGENT_ID)
+        assert exc_info.value.response["Error"]["Code"] == error_code
+
+
+@pytest.mark.parametrize("error_code", [None, "TestException"])
+def test_create_agent_action_group(make_stubber, error_code):
+    bedrock_agent_client = boto3.client("bedrock-agent")
+    bedrock_agent_stubber = make_stubber(bedrock_agent_client)
+
+    expected_params = {
+        "agentId": Fake.AGENT_ID,
+        "agentVersion": "DRAFT",
+        "actionGroupName": Fake.ACTION_GROUP_NAME,
+        "apiSchema": {
+            "payload": Fake.API_SCHEMA
+        },
+        "description": Fake.DESCRIPTION,
+        "clientToken": None
+    }
+
+    response = {
+        "actionGroup": {
+            "actionGroupId": Fake.ACTION_GROUP_ID,
+            "actionGroupName": Fake.ACTION_GROUP_NAME,
+            "agentId": Fake.AGENT_ID,
+            "agentVersion": "DRAFT",
+            "createdAt": Fake.TIMESTAMP,
+            "description": Fake.DESCRIPTION,
+            "updatedAt": Fake.TIMESTAMP
+        }
+    }
+
+    bedrock_agent_stubber.stub_create_agent_action_group(
+        expected_params, response, error_code=error_code
+    )
+
+    if error_code is None:
+        action_group = wrapper.create_agent_action_group(
+            bedrock_agent_client,
+            Fake.AGENT_ID,
+            Fake.ACTION_GROUP_NAME,
+            Fake.API_SCHEMA,
+            Fake.DESCRIPTION
+        )
+        assert action_group["actionGroupId"] == Fake.ACTION_GROUP_ID
+    else:
+        with pytest.raises(ClientError) as exc_info:
+            wrapper.create_agent_action_group(
+                bedrock_agent_client,
+                Fake.AGENT_ID,
+                Fake.ACTION_GROUP_NAME,
+                Fake.API_SCHEMA,
+                Fake.DESCRIPTION
+            )
+        assert exc_info.value.response["Error"]["Code"] == error_code
+
+
+@pytest.mark.parametrize("error_code", [None, "TestException"])
+def test_delete_agent_action_group(make_stubber, error_code):
+    bedrock_agent_client = boto3.client("bedrock-agent")
+    bedrock_agent_stubber = make_stubber(bedrock_agent_client)
+
+    expected_params = {
+        "agentId": Fake.AGENT_ID,
+        "agentVersion": "DRAFT",
+        "actionGroupId": Fake.ACTION_GROUP_ID,
+        "skipResourceInUseCheck": False
+    }
+
+    response = {}
+
+    bedrock_agent_stubber.stub_delete_agent_action_group(
+        expected_params, response, error_code=error_code
+    )
+
+    if error_code is None:
+        wrapper.delete_agent_action_group(
+            bedrock_agent_client, Fake.AGENT_ID, Fake.ACTION_GROUP_ID
+        )
+    else:
+        with pytest.raises(ClientError) as exc_info:
+            wrapper.delete_agent_action_group(
+                bedrock_agent_client, Fake.AGENT_ID, Fake.ACTION_GROUP_ID
+            )
+        assert exc_info.value.response["Error"]["Code"] == error_code
+
+
+@pytest.mark.parametrize("error_code", [None, "TestException"])
+def test_prepare_agent(make_stubber, error_code):
+    bedrock_agent_client = boto3.client("bedrock-agent")
+    bedrock_agent_stubber = make_stubber(bedrock_agent_client)
+
+    expected_params = {
+        "agentId": Fake.AGENT_ID,
+        "agentVersion": "DRAFT"
+    }
+
+    response = {
+        "agent": {
+            "agentId": Fake.AGENT_ID,
+            "agentName": Fake.AGENT_NAME,
+            "agentArn": Fake.ARN,
+            "agentStatus": "PREPARING",
+            "agentVersion": "DRAFT",
+            "createdAt": Fake.TIMESTAMP,
+            "description": Fake.DESCRIPTION,
+            "foundationModel": Fake.FOUNDATION_MODEL_ID,
+            "idleSessionTTLInSeconds": 1800,
+            "instruction": Fake.INSTRUCTION,
+            "updatedAt": Fake.TIMESTAMP
+        }
+    }
+
+    bedrock_agent_stubber.stub_prepare_agent(
+        expected_params, response, error_code=error_code
+    )
+
+    if error_code is None:
+        agent = wrapper.prepare_agent(bedrock_agent_client, Fake.AGENT_ID)
+        assert agent["agentId"] == Fake.AGENT_ID
+    else:
+        with pytest.raises(ClientError) as exc_info:
+            wrapper.prepare_agent(bedrock_agent_client, Fake.AGENT_ID)
+        assert exc_info.value.response["Error"]["Code"] == error_code
+
+
+@pytest.mark.parametrize("error_code", [None, "TestException"])
+def test_create_agent_alias(make_stubber, error_code):
+    bedrock_agent_client = boto3.client("bedrock-agent")
+    bedrock_agent_stubber = make_stubber(bedrock_agent_client)
+
+    expected_params = {
+        "agentId": Fake.AGENT_ID,
+        "agentAliasName": Fake.ALIAS_NAME,
+        "description": Fake.DESCRIPTION,
+        "routingConfiguration": [
+            {
+                "agentVersion": "DRAFT"
+            }
+        ],
+        "clientToken": None
+    }
+
+    response = {
+        "agentAlias": {
+            "agentAliasId": Fake.ALIAS_ID,
+            "agentAliasName": Fake.ALIAS_NAME,
+            "agentAliasArn": Fake.ARN,
+            "agentAliasStatus": "CREATING",
+            "agentId": Fake.AGENT_ID,
+            "createdAt": Fake.TIMESTAMP,
+            "description": Fake.DESCRIPTION,
+            "routingConfiguration": [
+                {
+                    "agentVersion": "DRAFT"
+                }
+            ],
+            "updatedAt": Fake.TIMESTAMP
+        }
+    }
+
+    bedrock_agent_stubber.stub_create_agent_alias(
+        expected_params, response, error_code=error_code
+    )
+
+    if error_code is None:
+        agent_alias = wrapper.create_agent_alias(
+            bedrock_agent_client, Fake.AGENT_ID, Fake.ALIAS_NAME, Fake.DESCRIPTION
+        )
+        assert agent_alias["agentAliasId"] == Fake.ALIAS_ID
+    else:
+        with pytest.raises(ClientError) as exc_info:
+            wrapper.create_agent_alias(
+                bedrock_agent_client, Fake.AGENT_ID, Fake.ALIAS_NAME, Fake.DESCRIPTION
+            )
+        assert exc_info.value.response["Error"]["Code"] == error_code
+
+
+@pytest.mark.parametrize("error_code", [None, "TestException"])
+def test_delete_agent_alias(make_stubber, error_code):
+    bedrock_agent_client = boto3.client("bedrock-agent")
+    bedrock_agent_stubber = make_stubber(bedrock_agent_client)
+
+    expected_params = {
+        "agentId": Fake.AGENT_ID,
+        "agentAliasId": Fake.ALIAS_ID,
+        "skipResourceInUseCheck": False
+    }
+
+    response = {}
+
+    bedrock_agent_stubber.stub_delete_agent_alias(
+        expected_params, response, error_code=error_code
+    )
+
+    if error_code is None:
+        wrapper.delete_agent_alias(
+            bedrock_agent_client, Fake.AGENT_ID, Fake.ALIAS_ID
+        )
+    else:
+        with pytest.raises(ClientError) as exc_info:
+            wrapper.delete_agent_alias(
+                bedrock_agent_client, Fake.AGENT_ID, Fake.ALIAS_ID
+            )
+        assert exc_info.value.response["Error"]["Code"] == error_code

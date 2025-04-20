@@ -11,7 +11,7 @@ import pytest
 import io
 import json
 
-from conftest import FakeData
+from test.conftest import FakeData
 
 import sys
 sys.path.append("..")

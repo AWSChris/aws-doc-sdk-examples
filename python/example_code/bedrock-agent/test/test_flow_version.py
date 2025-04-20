@@ -5,7 +5,7 @@
 Unit tests for flow_version.py.
 """
 
-from conftest import FakeFlowData as Fake
+from test.conftest import FakeFlowData as Fake
 
 import boto3
 from botocore.exceptions import ClientError

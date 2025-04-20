@@ -60,8 +60,7 @@ def create_prompt(client, prompt_name, prompt_description, prompt_template, mode
         create_params = {
             'name': prompt_name,
             'description': prompt_description,
-            'variants': [variant],
-            'defaultVariant': "default"
+            'variants': [variant]
         }
             
         response = client.create_prompt(**create_params)

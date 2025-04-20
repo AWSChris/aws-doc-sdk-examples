@@ -10,7 +10,7 @@ import boto3
 from botocore.exceptions import ClientError
 import pytest
 
-from conftest import FakeFlowData as Fake
+from test.conftest import FakeFlowData as Fake
 
 from flows import run_flow
 
@@ -56,5 +56,3 @@ def test_invoke_flow(make_stubber, error_code):
         with pytest.raises(ClientError) as exc_info:
             run_flow.invoke_flow(bedrock_agent_runtime_client, Fake.FLOW_ID, Fake.ALIAS_ID, flow_input_data)
         assert exc_info.value.response["Error"]["Code"] == error_code
-
-

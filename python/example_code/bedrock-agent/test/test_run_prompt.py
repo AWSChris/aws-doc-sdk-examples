@@ -12,10 +12,10 @@ import json
 import io
 from unittest import mock
 
-from conftest import FakePromptRunData
+# Import from the local conftest.py file
+from test.conftest import FakePromptRunData
 
-import sys
-sys.path.append("../prompts")
+# Import the module to test
 from prompts import run_prompt
 
 
