@@ -269,3 +269,9 @@ class BedrockRuntimeStubber(ExampleStubber):
         self._stub_bifurcator(
             "invoke_model", expected_params, response, error_code=error_code
         )
+        
+    # Prompt API stubs for bedrock-runtime
+    def stub_invoke_prompt(self, expected_params, response, error_code=None):
+        self._stub_bifurcator(
+            "invoke_prompt", expected_params, response, error_code=error_code
+        )

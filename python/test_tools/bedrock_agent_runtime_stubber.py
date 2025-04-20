@@ -35,3 +35,8 @@ class BedrockAgentRuntimeStubber(ExampleStubber):
         self._stub_bifurcator(
             "invoke_flow", expected_params, response, error_code=error_code
         )
+        
+    def stub_invoke_prompt(self, expected_params, response, error_code=None):
+        self._stub_bifurcator(
+            "invoke_prompt", expected_params, response, error_code=error_code
+        )
