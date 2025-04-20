@@ -6,7 +6,6 @@ to manage Amazon Bedrock managed prompts.
 """
 
 import logging
-from time import sleep
 from botocore.exceptions import ClientError
 
 

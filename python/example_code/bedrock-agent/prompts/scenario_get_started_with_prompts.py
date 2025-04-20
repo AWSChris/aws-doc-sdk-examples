@@ -14,14 +14,8 @@ This scenario demonstrates the following:
 
 import argparse
 import boto3
-import json
 import logging
 import time
-from botocore.exceptions import ClientError
-import sys
-import os
-
-# Import the modules using relative imports that work in all contexts
 import os
 import sys
 
