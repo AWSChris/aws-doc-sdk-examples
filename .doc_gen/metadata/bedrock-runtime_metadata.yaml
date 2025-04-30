@@ -132,6 +132,14 @@ bedrock-runtime_Converse_AmazonNovaText:
             - description: Send a text message to Amazon Nova, using Bedrock's Converse API.
               snippet_tags:
                 - python.example_code.bedrock-runtime.Converse_AmazonNovaText
+    Swift:
+      versions:
+        - sdk_version: 1
+          github: swift/example_code/bedrock-runtime
+          excerpts:
+            - description: Send a text message to Amazon Nova, using Bedrock's Converse API.
+              snippet_tags:
+                - swift.example_code.bedrock-runtime.Converse_AmazonNovaText
   services:
     bedrock-runtime: {Converse}
 
@@ -501,6 +509,14 @@ bedrock-runtime_ConverseStream_AmazonNovaText:
             - description: Send a text message to Amazon Nova, using Bedrock's Converse API and process the response stream in real-time.
               snippet_tags:
                 - python.example_code.bedrock-runtime.ConverseStream_AmazonNovaText
+    Swift:
+      versions:
+        - sdk_version: 1
+          github: swift/example_code/bedrock-runtime
+          excerpts:
+            - description: Send a text message to Amazon Nova, using Bedrock's Converse API and process the response stream in real-time.
+              snippet_tags:
+                - swift.example_code.bedrock-runtime.ConverseStream_AmazonNovaText
   services:
     bedrock-runtime: {ConverseStream}
 
@@ -1632,3 +1648,20 @@ bedrock-runtime_Scenario_InvokeModels:
                 - php.example_code.bedrock-runtime.basics.scenario
   services:
     bedrock-runtime: {InvokeModel, InvokeModelWithResponseStream}
+
+bedrock-runtime_Scenario_GenerateVideos_NovaReel:
+  title: Generate videos from text prompts using &BR; and Nova-Reel
+  title_abbrev: "Generate videos from text prompts using &BR;"
+  synopsis: a Spring Boot app that generates videos from text prompts using &BR; and the Nova-Reel model.
+  category: Scenarios
+  languages:
+    Java:
+      versions:
+        - sdk_version: 2
+          github: javav2/example_code/bedrock-runtime
+          excerpts:
+            - description: Generate videos from text prompts using &BR; and Nova-Reel.
+              snippet_tags:
+                - bedrock-runtime.java2.NovaReel.VideoGeneration
+  services:
+    bedrock-runtime: {StartAsyncInvoke, GetAsyncInvoke}
