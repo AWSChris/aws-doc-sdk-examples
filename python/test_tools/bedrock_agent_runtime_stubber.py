@@ -31,6 +31,44 @@ class BedrockAgentRuntimeStubber(ExampleStubber):
         self._stub_bifurcator(
             "invoke_agent", expected_params, response, error_code=error_code
         )
+        
+    def add_invoke_agent_response(self, expected_params, response_chunks, version="1.0"):
+        """
+        Adds a response for the invoke_agent method that includes streaming chunks.
+        
+        :param expected_params: The parameters that are expected to be passed to the method.
+        :param response_chunks: A list of chunks to be returned in the completion field.
+        :param version: The version of the response.
+        """
+        response = {
+            "completion": response_chunks,
+            "version": version
+        }
+        self._stub_bifurcator(
+            "invoke_agent", expected_params, response
+        )
+        
+    def add_client_error(self, method_name, expected_params, service_error_code, service_message):
+        """
+        Adds a client error response for the specified method.
+        
+        :param method_name: The name of the method that raises the error.
+        :param expected_params: The parameters that are expected to be passed to the method.
+        :param service_error_code: The error code to return.
+        :param service_message: The error message to return.
+        """
+        self.client.meta.client.exceptions.ClientError.service_error_meta = {
+            'Code': service_error_code,
+            'Message': service_message
+        }
+        self._stub_bifurcator(
+            method_name,
+            expected_params,
+            service_error_code=service_error_code,
+            service_message=service_message,
+            error_code=service_error_code
+        )
+        
     def stub_invoke_flow(self, expected_params, response, error_code=None):
         self._stub_bifurcator(
             "invoke_flow", expected_params, response, error_code=error_code

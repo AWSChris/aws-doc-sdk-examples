@@ -69,3 +69,25 @@ bedrock-agent-runtime_Scenario_ConverseWithFlow:
 
   services:
     bedrock-agent-runtime: {InvokeFlow}
+
+bedrock-agent-runtime_Scenario_CodeInterpreter:
+  title: Use code interpreter with an &BRlong; agent
+  synopsis: use the code interpreter feature with an &BRlong; agent.
+  category: Basics
+  guide_topic:
+    title: Use code interpreter with an &BRlong; agent
+    url: bedrock/latest/userguide/agents-code-interpretation.html
+  languages:
+    Python:
+      versions:
+        - sdk_version: 3
+          github: python/example_code/bedrock-agent-runtime
+          sdkguide:
+          excerpts:
+            - description:
+              snippet_tags:
+                - python.example_code.bedrock-agent-runtime.CodeInterpreterExample.class
+                - python.example_code.bedrock-agent-runtime.CodeInterpreterExample.main
+
+  services:
+    bedrock-agent-runtime: {InvokeAgent}

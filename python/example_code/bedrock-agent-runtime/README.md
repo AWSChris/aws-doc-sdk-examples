@@ -39,6 +39,7 @@ python -m pip install -r requirements.txt
 Code examples that show you how to perform the essential operations within a service.
 
 - [Learn the basics](flows/flow-conversation.py)
+- [Use code interpreter with an agent](code-interpreter/code_interpreter_example.py)
 
 
 ### Single actions
@@ -79,6 +80,15 @@ python flows/flow-conversation.py
 <!--custom.basics.bedrock-agent-runtime_Scenario_ConverseWithFlow.start-->
 <!--custom.basics.bedrock-agent-runtime_Scenario_ConverseWithFlow.end-->
 
+#### Use code interpreter with an agent
+
+This example shows you how to use the code interpreter feature with an Amazon Bedrock agent.
+
+Start the example by running the following at a command prompt:
+
+```
+python code-interpreter/code_interpreter_example.py --agent-id YOUR_AGENT_ID --agent-alias-id YOUR_AGENT_ALIAS_ID --file-path PATH_TO_YOUR_FILE --prompt "Analyze this file"
+```
 
 ### Tests
 
